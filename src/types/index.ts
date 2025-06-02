@@ -1,0 +1,72 @@
+export interface User {
+  id: string;
+  email: string;
+  displayName: string;
+  householdId?: string;
+  role: 'head' | 'member';
+  gems: number;
+  createdAt: Date;
+}
+
+export interface Household {
+  id: string;
+  name: string;
+  headOfHousehold: string;
+  members: string[];
+  inviteLinks: InviteLink[];
+  createdAt: Date;
+}
+
+export interface InviteLink {
+  memberId: string;
+  token: string;
+  expiresAt?: Date;
+}
+
+export interface Task {
+  id: string;
+  householdId: string;
+  creatorId: string;
+  title: string;
+  description: string;
+  status: TaskStatus;
+  claimedBy?: string;
+  dueDate: Date;
+  gems: number;
+  recurrence?: RecurrenceConfig;
+  verifications: Verification[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type TaskStatus = 'draft' | 'published' | 'claimed' | 'completed' | 'verified';
+
+export interface Verification {
+  userId: string;
+  verified: boolean;
+  verifiedAt: Date;
+}
+
+export interface RecurrenceConfig {
+  type: 'daily' | 'weekly' | 'monthly' | 'custom';
+  interval: number;
+  daysOfWeek?: number[];
+  endDate?: Date;
+}
+
+export interface GemTransaction {
+  id: string;
+  userId: string;
+  taskId?: string;
+  amount: number;
+  type: 'task_creation' | 'task_completion' | 'verification' | 'bonus';
+  description: string;
+  createdAt: Date;
+}
+
+export interface NotificationPreferences {
+  email: boolean;
+  push: boolean;
+  taskReminders: boolean;
+  verificationRequests: boolean;
+}

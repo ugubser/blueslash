@@ -1,0 +1,185 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Press Start 2P', monospace;
+    @apply bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600;
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .mario-button {
+    @apply bg-mario-red text-white px-6 py-3 rounded-lg border-4 border-white shadow-lg;
+    @apply hover:bg-red-600 active:scale-95 transition-all duration-150;
+    @apply font-bold text-sm tracking-wide;
+    background: linear-gradient(145deg, #e53e3e, #c53030);
+    box-shadow: 0 4px 0 #991b1b, 0 8px 20px rgba(0,0,0,0.3);
+  }
+  
+  .mario-button:active {
+    box-shadow: 0 2px 0 #991b1b, 0 4px 10px rgba(0,0,0,0.3);
+    transform: translateY(2px);
+  }
+
+  .mario-button-blue {
+    @apply bg-mario-blue text-white px-6 py-3 rounded-lg border-4 border-white shadow-lg;
+    @apply hover:bg-blue-600 active:scale-95 transition-all duration-150;
+    @apply font-bold text-sm tracking-wide;
+    background: linear-gradient(145deg, #3182ce, #2c5282);
+    box-shadow: 0 4px 0 #1a365d, 0 8px 20px rgba(0,0,0,0.3);
+  }
+
+  .mario-button-blue:active {
+    box-shadow: 0 2px 0 #1a365d, 0 4px 10px rgba(0,0,0,0.3);
+    transform: translateY(2px);
+  }
+
+  .mario-card {
+    @apply bg-white rounded-xl border-4 border-gray-300 shadow-xl p-6;
+    background: linear-gradient(145deg, #ffffff, #f7fafc);
+    box-shadow: 0 8px 0 #e2e8f0, 0 12px 30px rgba(0,0,0,0.2);
+  }
+
+  .gem-counter {
+    @apply flex items-center gap-2 bg-mario-yellow text-black px-4 py-2 rounded-full;
+    @apply border-2 border-yellow-600 shadow-lg font-bold;
+    background: linear-gradient(145deg, #d69e2e, #b7791f);
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  .coin-icon {
+    @apply w-6 h-6 text-yellow-800;
+    animation: bounce-coin 0.6s ease-in-out infinite;
+  }
+
+  .task-card {
+    @apply bg-white rounded-lg border-2 border-gray-200 p-4 shadow-lg;
+    @apply hover:shadow-xl transition-all duration-200;
+    @apply hover:border-mario-blue cursor-pointer;
+  }
+
+  .task-card.claimed {
+    @apply border-mario-orange bg-orange-50;
+  }
+
+  .task-card.completed {
+    @apply border-mario-green bg-green-50;
+  }
+
+  .task-card.verified {
+    @apply border-mario-purple bg-purple-50;
+  }
+
+  .power-up-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold;
+    @apply bg-gradient-to-r from-mario-yellow to-yellow-500;
+    @apply text-black border-2 border-yellow-600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .status-badge {
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wide;
+  }
+
+  .status-draft {
+    @apply bg-gray-100 text-gray-800 border border-gray-300;
+  }
+
+  .status-published {
+    @apply bg-blue-100 text-blue-800 border border-blue-300;
+  }
+
+  .status-claimed {
+    @apply bg-orange-100 text-orange-800 border border-orange-300;
+  }
+
+  .status-completed {
+    @apply bg-green-100 text-green-800 border border-green-300;
+  }
+
+  .status-verified {
+    @apply bg-purple-100 text-purple-800 border border-purple-300;
+  }
+
+  .mario-input {
+    @apply w-full px-4 py-3 border-2 border-gray-300 rounded-lg;
+    @apply focus:border-mario-blue focus:ring-2 focus:ring-mario-blue focus:ring-opacity-50;
+    @apply bg-white text-gray-900 font-normal;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+
+  .mario-textarea {
+    @apply w-full px-4 py-3 border-2 border-gray-300 rounded-lg;
+    @apply focus:border-mario-blue focus:ring-2 focus:ring-mario-blue focus:ring-opacity-50;
+    @apply bg-white text-gray-900 font-normal;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    min-height: 120px;
+  }
+
+  .leaderboard-item {
+    @apply flex items-center justify-between p-4 bg-white rounded-lg;
+    @apply border-2 border-gray-200 hover:border-mario-blue transition-colors;
+  }
+
+  .leaderboard-item.first {
+    @apply border-mario-yellow bg-yellow-50;
+    background: linear-gradient(145deg, #fef3c7, #fde68a);
+  }
+
+  .leaderboard-item.second {
+    @apply border-gray-400 bg-gray-50;
+    background: linear-gradient(145deg, #f3f4f6, #e5e7eb);
+  }
+
+  .leaderboard-item.third {
+    @apply border-orange-400 bg-orange-50;
+    background: linear-gradient(145deg, #fed7aa, #fdba74);
+  }
+
+  .loading-spinner {
+    @apply animate-spin rounded-full h-8 w-8 border-4 border-mario-blue border-t-transparent;
+  }
+
+  .notification-toast {
+    @apply fixed top-4 right-4 bg-white border-2 border-mario-green rounded-lg p-4 shadow-lg;
+    @apply transform transition-all duration-300 ease-in-out;
+    z-index: 1000;
+  }
+
+  .notification-toast.success {
+    @apply border-mario-green bg-green-50;
+  }
+
+  .notification-toast.error {
+    @apply border-mario-red bg-red-50;
+  }
+
+  .notification-toast.warning {
+    @apply border-mario-yellow bg-yellow-50;
+  }
+}
+
+@keyframes bounce-coin {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-4px) rotate(180deg); }
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 5px theme(colors.mario.yellow); }
+  100% { box-shadow: 0 0 20px theme(colors.mario.yellow), 0 0 30px theme(colors.mario.yellow); }
+}
+
+@keyframes power-up {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.power-up-animation {
+  animation: power-up 0.3s ease-in-out;
+}
