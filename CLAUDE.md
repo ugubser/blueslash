@@ -98,7 +98,7 @@ VITE_FIREBASE_APP_ID=
 ### Emulator Configuration
 When using emulators, all Firebase services are emulated:
 - **Auth emulator**: http://127.0.0.1:9099
-- **Firestore emulator**: http://127.0.0.1:8080
+- **Firestore emulator**: http://127.0.0.1:8081
 - **Functions emulator**: http://127.0.0.1:5001
 - **Storage emulator**: http://127.0.0.1:9199
 - **Hosting emulator**: http://127.0.0.1:5003
@@ -109,6 +109,19 @@ Emulators used automatically in:
 - Emulator builds (`npm run build`)
 
 Use `npm run build:prod` for production Firebase builds
+
+### Emulator Connection Troubleshooting
+If you see "WARNING: Firestore emulator connection failed":
+1. Ensure Firebase emulators are running: `firebase emulators:start`
+2. Check that Firestore emulator is on port 8081
+3. Restart your dev server: `npm run dev`
+4. Check console for detailed connection status
+5. If still failing, you may be accidentally using production database
+
+To verify emulator usage:
+- Look for console message: "Connected to Firestore emulator (port 8081)"
+- Check emulator UI at http://127.0.0.1:4000
+- Verify data appears in emulator UI, not production console
 
 ## Development Workflow
 
