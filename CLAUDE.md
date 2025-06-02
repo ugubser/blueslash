@@ -7,10 +7,13 @@ BlueSlash is a gamified household task management application built with React, 
 
 ### Build & Development
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run preview      # Preview production build
-npm run lint         # Run ESLint
+npm run dev              # Start development server (uses emulators)
+npm run build            # Build for emulator testing
+npm run build:prod       # Build for production deployment
+npm run preview          # Preview last build
+npm run preview:emulator # Preview emulator build
+npm run preview:prod     # Preview production build
+npm run lint             # Run ESLint
 ```
 
 ### Firebase Setup
@@ -66,8 +69,12 @@ VITE_FIREBASE_PROJECT_ID=
 VITE_FIREBASE_STORAGE_BUCKET=
 VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
-VITE_USE_FIREBASE_EMULATORS=true
 ```
+
+## Build Modes
+- **Development** (`npm run dev`): Uses Firebase emulators automatically
+- **Emulator Build** (`npm run build`): Builds for testing with emulators
+- **Production Build** (`npm run build:prod`): Builds for production Firebase
 
 ## Firebase Collections
 - `users`: User profiles and gem balances
@@ -91,7 +98,8 @@ VITE_USE_FIREBASE_EMULATORS=true
 ### Emulator Configuration
 - Auth emulator: http://127.0.0.1:9099
 - Firestore emulator: http://127.0.0.1:8080
-- Set `VITE_USE_FIREBASE_EMULATORS=false` to use production Firebase
+- Emulators used automatically in dev mode and emulator builds
+- Use `npm run build:prod` for production Firebase builds
 
 ## Development Workflow
 1. Start Firebase emulators: `firebase emulators:start`
