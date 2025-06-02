@@ -103,3 +103,13 @@ export const updateUserGems = async (userId: string, gemsToAdd: number): Promise
     throw error;
   }
 };
+
+export const getCurrentUser = async (userId: string): Promise<User | null> => {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    return userDoc.exists() ? userDoc.data() as User : null;
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return null;
+  }
+};

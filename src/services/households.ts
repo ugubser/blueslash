@@ -4,8 +4,6 @@ import {
   getDoc, 
   setDoc, 
   updateDoc, 
-  query, 
-  where, 
   getDocs,
   arrayUnion,
   arrayRemove
@@ -62,37 +60,52 @@ export const generateInviteLink = async (householdId: string): Promise<string> =
 
 export const joinHouseholdByInvite = async (token: string, userId: string): Promise<Household> => {
   try {
-    const householdsQuery = query(
-      collection(db, 'households'),
-      where('inviteLinks', 'array-contains-any', [{ token }])
-    );
+    // Get all households and search for the token manually
+    // This is needed because Firestore doesn't support complex queries on array elements
+    const householdsSnapshot = await getDocs(collection(db, 'households'));
     
-    const householdsSnapshot = await getDocs(householdsQuery);
+    let targetHousehold: Household | null = null;
+    let targetInviteLink: InviteLink | null = null;
     
-    if (householdsSnapshot.empty) {
+    for (const doc of householdsSnapshot.docs) {
+      const household = doc.data() as Household;
+      const inviteLink = household.inviteLinks?.find(link => link.token === token);
+      
+      if (inviteLink) {
+        targetHousehold = household;
+        targetInviteLink = inviteLink;
+        break;
+      }
+    }
+    
+    if (!targetHousehold || !targetInviteLink) {
       throw new Error('Invalid or expired invite link');
     }
-
-    const householdDoc = householdsSnapshot.docs[0];
-    const household = householdDoc.data() as Household;
     
-    const inviteLink = household.inviteLinks.find(link => link.token === token);
-    if (!inviteLink || (inviteLink.expiresAt && inviteLink.expiresAt < new Date())) {
-      throw new Error('Invalid or expired invite link');
+    // Check if invite link is expired
+    if (targetInviteLink.expiresAt) {
+      const expirationDate = targetInviteLink.expiresAt instanceof Date 
+        ? targetInviteLink.expiresAt 
+        : new Date(targetInviteLink.expiresAt);
+        
+      if (expirationDate < new Date()) {
+        throw new Error('Invalid or expired invite link');
+      }
     }
 
-    if (!household.members.includes(userId)) {
-      await updateDoc(doc(db, 'households', household.id), {
+    // Add user to household if not already a member
+    if (!targetHousehold.members.includes(userId)) {
+      await updateDoc(doc(db, 'households', targetHousehold.id), {
         members: arrayUnion(userId)
       });
 
       await updateDoc(doc(db, 'users', userId), {
-        householdId: household.id,
+        householdId: targetHousehold.id,
         role: 'member'
       });
     }
 
-    return household;
+    return targetHousehold;
   } catch (error) {
     console.error('Error joining household:', error);
     throw error;

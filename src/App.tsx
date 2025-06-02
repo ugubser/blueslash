@@ -1,16 +1,16 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { HouseholdProvider, useHousehold } from './hooks/useHousehold';
 import Header from './components/Header';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import HouseholdSetup from './pages/HouseholdSetup';
+import Invite from './pages/Invite';
 import './styles/index.css';
 
 const AppRoutes: React.FC = () => {
-  const { user, loading: authLoading } = useAuth();
-  const { household, loading: householdLoading } = useHousehold();
+  const { loading: authLoading } = useAuth();
 
   if (authLoading) {
     return (
@@ -23,8 +23,28 @@ const AppRoutes: React.FC = () => {
     );
   }
 
+  return (
+    <Routes>
+      <Route path="/invite/:token" element={<Invite />} />
+      <Route path="/*" element={<AuthenticatedRoutes />} />
+    </Routes>
+  );
+};
+
+const AuthenticatedRoutes: React.FC = () => {
+  const { user } = useAuth();
+  const { household, loading: householdLoading } = useHousehold();
+  const location = useLocation();
+
   if (!user) {
     return <Login />;
+  }
+
+  // Check for pending invite token after authentication, but only if we're not already on an invite page
+  const pendingInviteToken = localStorage.getItem('pendingInviteToken');
+  if (pendingInviteToken && !location.pathname.startsWith('/invite/')) {
+    // Redirect to invite processing only if we're not already on an invite page
+    return <Navigate to={`/invite/${pendingInviteToken}`} replace />;
   }
 
   if (!householdLoading && !household) {
