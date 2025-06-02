@@ -23,6 +23,9 @@
     "firestore": {
       "port": 8080
     },
+    "functions": {
+      "port": 5001
+    },
     "hosting": {
       "port": 5003
     },
@@ -30,7 +33,8 @@
       "port": 9199
     },
     "ui": {
-      "enalbed": true
+      "enabled": true,
+      "port": 4000
     },
     "singleProjectMode": true
   },

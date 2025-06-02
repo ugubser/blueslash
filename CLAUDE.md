@@ -96,17 +96,39 @@ VITE_FIREBASE_APP_ID=
 - Use incognito window for testing
 
 ### Emulator Configuration
-- Auth emulator: http://127.0.0.1:9099
-- Firestore emulator: http://127.0.0.1:8080
-- Emulators used automatically in dev mode and emulator builds
-- Use `npm run build:prod` for production Firebase builds
+When using emulators, all Firebase services are emulated:
+- **Auth emulator**: http://127.0.0.1:9099
+- **Firestore emulator**: http://127.0.0.1:8080
+- **Functions emulator**: http://127.0.0.1:5001
+- **Storage emulator**: http://127.0.0.1:9199
+- **Hosting emulator**: http://127.0.0.1:5003
+- **Emulator UI**: http://127.0.0.1:4000
+
+Emulators used automatically in:
+- Development mode (`npm run dev`)
+- Emulator builds (`npm run build`)
+
+Use `npm run build:prod` for production Firebase builds
 
 ## Development Workflow
+
+### For Development (using emulators):
 1. Start Firebase emulators: `firebase emulators:start`
 2. Start dev server: `npm run dev`
 3. Navigate to http://localhost:5173
 4. Sign in with Google (emulator will create test accounts)
 5. Create household and start adding tasks
+
+### For Emulator Testing (built app):
+1. Start Firebase emulators: `firebase emulators:start`
+2. Build for emulator: `npm run build`
+3. Deploy to hosting emulator: `firebase serve --only hosting --port 5003`
+4. Navigate to http://127.0.0.1:5003
+5. Test the full application with emulated services
+
+### For Production Deployment:
+1. Build for production: `npm run build:prod`
+2. Deploy to Firebase: `firebase deploy`
 
 ## Deployment
 1. Build: `npm run build`

@@ -10,7 +10,10 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "preview:emulator": "vite preview --mode emulator",
-    "preview:prod": "vite preview --mode production"
+    "preview:prod": "vite preview --mode production",
+    "emulators": "firebase emulators:start",
+    "serve:emulator": "npm run build && firebase serve --only hosting --port 5003",
+    "deploy": "npm run build:prod && firebase deploy"
   },
   "dependencies": {
     "react": "^19.1.0",
