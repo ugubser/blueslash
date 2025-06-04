@@ -2,7 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
-import { getStorage, connectStorageEmulator } from 'firebase/storage';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -29,6 +29,12 @@ const useEmulators = import.meta.env.MODE === 'emulator' || import.meta.env.DEV;
 if (useEmulators) {
   console.log(`🔧 Using Firebase emulators (mode: ${import.meta.env.MODE})`);
   console.log(`📦 Project ID: ${firebaseConfig.projectId}`);
+  console.log(`🌍 Environment:`, {
+    MODE: import.meta.env.MODE,
+    DEV: import.meta.env.DEV,
+    PROD: import.meta.env.PROD,
+    useEmulators
+  });
   
   // Check if we're already connected to emulators
   const alreadyConnected = {
@@ -43,11 +49,14 @@ if (useEmulators) {
     if (!alreadyConnected.auth) {
       connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
       console.log('✅ Connected to Auth emulator (port 9099)');
+      console.log('🔍 Auth emulator config:', auth.emulatorConfig);
     } else {
       console.log('🔄 Auth emulator already connected');
+      console.log('🔍 Existing auth emulator config:', auth.emulatorConfig);
     }
   } catch (error) {
     console.error('❌ Auth emulator connection failed:', error);
+    console.error('⚠️  WARNING: Will use production Firebase Auth!');
   }
 
   try {
@@ -70,14 +79,15 @@ if (useEmulators) {
     console.error('❌ Functions emulator connection failed:', error);
   }
 
-  try {
-    // Connect to Storage emulator
-    connectStorageEmulator(storage, '127.0.0.1', 9199);
-    console.log('✅ Connected to Storage emulator (port 9199)');
-    alreadyConnected.storage = true;
-  } catch (error) {
-    console.error('❌ Storage emulator connection failed:', error);
-  }
+  // Skip storage emulator for now to avoid access errors
+  // try {
+  //   // Connect to Storage emulator
+  //   connectStorageEmulator(storage, '127.0.0.1', 9199);
+  //   console.log('✅ Connected to Storage emulator (port 9199)');
+  //   alreadyConnected.storage = true;
+  // } catch (error) {
+  //   console.error('❌ Storage emulator connection failed:', error);
+  // }
 
   // Verify connections
   console.log('🔍 Emulator connection status:', alreadyConnected);
