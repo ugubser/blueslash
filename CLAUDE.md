@@ -90,10 +90,31 @@ VITE_FIREBASE_APP_ID=
 - Verify environment variables are set correctly
 - Check console for detailed auth error logs
 
+### Production Authentication Issues
+If you see "Access to storage is not allowed" or popup issues in production:
+
+1. **Service Worker Conflicts**: The PWA service worker may interfere with Firebase Auth
+   - Try disabling service worker temporarily
+   - Clear all browser data and cache
+   - Use incognito mode for testing
+
+2. **HTTPS Requirements**: Firebase Auth requires HTTPS in production
+   - Ensure your domain is properly configured with SSL
+   - Check Firebase console authorized domains include your production domain
+
+3. **Domain Authorization**: Add your production domain to Firebase Auth
+   - Go to Firebase Console → Authentication → Settings → Authorized domains
+   - Add your production domain (e.g., yourapp.web.app)
+
+4. **Popup Blockers**: Browser may block auth popups
+   - Disable popup blockers for your domain
+   - Try different browsers (Chrome, Firefox, Safari)
+
 ### Service Worker Storage Errors
 - PWA is disabled in development mode
 - Clear browser cache and service worker data
 - Use incognito window for testing
+- In production, service worker excludes Firebase Auth URLs to prevent conflicts
 
 ### Emulator Configuration
 When using emulators, all Firebase services are emulated:

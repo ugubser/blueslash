@@ -1,9 +1,15 @@
+export interface UserHousehold {
+  householdId: string;
+  role: 'head' | 'member';
+  joinedAt: Date;
+}
+
 export interface User {
   id: string;
   email: string;
   displayName: string;
-  householdId?: string;
-  role: 'head' | 'member';
+  households: UserHousehold[];
+  currentHouseholdId?: string;
   gems: number;
   createdAt: Date;
 }

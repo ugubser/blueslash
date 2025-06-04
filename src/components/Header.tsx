@@ -1,11 +1,18 @@
 import React from 'react';
-import { Coins, Home, User, LogOut } from 'lucide-react';
+import { Coins, User, LogOut } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
+import HouseholdSwitcher from './HouseholdSwitcher';
 
 const Header: React.FC = () => {
   const { user, signOut } = useAuth();
   const { household } = useHousehold();
+
+  const getCurrentUserRole = () => {
+    if (!user || !household) return 'member';
+    const userHousehold = user.households?.find(h => h.householdId === household.id);
+    return userHousehold?.role || 'member';
+  };
 
   return (
     <header className="bg-white border-b-4 border-mario-blue shadow-lg">
@@ -15,12 +22,7 @@ const Header: React.FC = () => {
             <h1 className="text-2xl font-bold text-mario-blue">
               BlueSlash
             </h1>
-            {household && (
-              <div className="flex items-center gap-2 text-sm">
-                <Home size={16} />
-                <span className="text-gray-600">{household.name}</span>
-              </div>
-            )}
+            <HouseholdSwitcher />
           </div>
 
           {user && (
@@ -34,7 +36,7 @@ const Header: React.FC = () => {
                 <User size={16} />
                 <span className="text-gray-700">{user.displayName}</span>
                 <span className="power-up-badge text-xs">
-                  {user.role === 'head' ? '👑 HEAD' : '👤 MEMBER'}
+                  {getCurrentUserRole() === 'head' ? '👑 HEAD' : '👤 MEMBER'}
                 </span>
               </div>
 

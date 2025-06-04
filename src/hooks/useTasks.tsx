@@ -10,7 +10,7 @@ export const useHouseholdTasks = (status?: TaskStatus) => {
   const [error, setError] = useState<string | null>(null);
 
   const refreshTasks = async () => {
-    if (!user?.householdId) {
+    if (!user?.currentHouseholdId) {
       setTasks([]);
       setLoading(false);
       return;
@@ -19,7 +19,7 @@ export const useHouseholdTasks = (status?: TaskStatus) => {
     try {
       setLoading(true);
       setError(null);
-      const tasksData = await getHouseholdTasks(user.householdId, status);
+      const tasksData = await getHouseholdTasks(user.currentHouseholdId, status);
       setTasks(tasksData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load tasks');

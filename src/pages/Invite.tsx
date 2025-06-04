@@ -4,7 +4,6 @@ import { Users, CheckCircle, XCircle, Home, LogIn } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
 import { joinHouseholdByInvite } from '../services/households';
-import { getCurrentUser } from '../services/auth';
 
 const Invite: React.FC = () => {
   const { token } = useParams<{ token: string }>();
@@ -40,16 +39,7 @@ const Invite: React.FC = () => {
       
       console.log('handleJoinHousehold: Successfully joined household:', updatedHousehold.id);
       
-      // Verify user has been updated with householdId
-      console.log('handleJoinHousehold: Verifying user update');
-      const updatedUser = await getCurrentUser(user.id);
-      console.log('handleJoinHousehold: Updated user data:', updatedUser);
-      
-      if (!updatedUser?.householdId) {
-        throw new Error('User was not properly updated with household ID');
-      }
-      
-      // Clear the saved token
+      // Clear the saved token immediately after successful join
       localStorage.removeItem('pendingInviteToken');
       
       console.log('handleJoinHousehold: Success! Setting success state');
@@ -63,8 +53,12 @@ const Invite: React.FC = () => {
       console.log('handleJoinHousehold: Refreshing household data');
       await refreshHousehold();
       
-      console.log('handleJoinHousehold: Navigating to dashboard');
-      navigate('/dashboard', { replace: true });
+      // Wait a bit to ensure state updates, then navigate
+      setTimeout(() => {
+        console.log('handleJoinHousehold: Navigating to dashboard');
+        navigate('/dashboard', { replace: true });
+      }, 1000);
+      
     } catch (error) {
       console.error('Error joining household:', error);
       setError(error instanceof Error ? error.message : 'Failed to join household');
@@ -73,7 +67,7 @@ const Invite: React.FC = () => {
     } finally {
       setProcessing(false);
     }
-  }, [token, user, refreshHousehold, navigate, processing]);
+  }, [token, user, refreshUser, refreshHousehold, navigate]);
 
   const handleSignIn = async () => {
     try {
@@ -111,7 +105,7 @@ const Invite: React.FC = () => {
         processing 
       });
     }
-  }, [token, user, handleJoinHousehold, processing]);
+  }, [token, user]); // Remove handleJoinHousehold and processing from dependencies
 
   // If user is not authenticated, show login message
   if (!user) {

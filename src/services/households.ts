@@ -9,7 +9,7 @@ import {
   arrayRemove
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Household, InviteLink, User } from '../types';
+import type { Household, InviteLink, User, UserHousehold } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 export const createHousehold = async (name: string, headOfHouseholdId: string): Promise<Household> => {
@@ -26,9 +26,16 @@ export const createHousehold = async (name: string, headOfHouseholdId: string): 
 
     await setDoc(doc(db, 'households', householdId), household);
     
-    await updateDoc(doc(db, 'users', headOfHouseholdId), {
+    // Add household to user's households array and set as current
+    const userHousehold: UserHousehold = {
       householdId,
-      role: 'head'
+      role: 'head',
+      joinedAt: new Date()
+    };
+    
+    await updateDoc(doc(db, 'users', headOfHouseholdId), {
+      households: arrayUnion(userHousehold),
+      currentHouseholdId: householdId
     });
 
     return household;
@@ -93,15 +100,32 @@ export const joinHouseholdByInvite = async (token: string, userId: string): Prom
       }
     }
 
-    // Add user to household if not already a member
-    if (!targetHousehold.members.includes(userId)) {
+    // Check if user is already a member of this household
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    const userData = userDoc.data() as User;
+    const isAlreadyMember = userData.households?.some(h => h.householdId === targetHousehold.id);
+    
+    if (!isAlreadyMember) {
+      // Add user to household members list
       await updateDoc(doc(db, 'households', targetHousehold.id), {
         members: arrayUnion(userId)
       });
 
-      await updateDoc(doc(db, 'users', userId), {
+      // Add household to user's households array and set as current
+      const userHousehold: UserHousehold = {
         householdId: targetHousehold.id,
-        role: 'member'
+        role: 'member',
+        joinedAt: new Date()
+      };
+      
+      await updateDoc(doc(db, 'users', userId), {
+        households: arrayUnion(userHousehold),
+        currentHouseholdId: targetHousehold.id
+      });
+    } else {
+      // User is already a member, just set it as their current household
+      await updateDoc(doc(db, 'users', userId), {
+        currentHouseholdId: targetHousehold.id
       });
     }
 
@@ -153,6 +177,48 @@ export const removeInviteLink = async (householdId: string, token: string): Prom
     }
   } catch (error) {
     console.error('Error removing invite link:', error);
+    throw error;
+  }
+};
+
+export const switchHousehold = async (userId: string, householdId: string): Promise<void> => {
+  try {
+    // Verify user is a member of this household
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    const userData = userDoc.data() as User;
+    const isMember = userData.households?.some(h => h.householdId === householdId);
+    
+    if (!isMember) {
+      throw new Error('User is not a member of this household');
+    }
+    
+    await updateDoc(doc(db, 'users', userId), {
+      currentHouseholdId: householdId
+    });
+  } catch (error) {
+    console.error('Error switching household:', error);
+    throw error;
+  }
+};
+
+export const getUserHouseholds = async (userId: string): Promise<Household[]> => {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    const userData = userDoc.data() as User;
+    
+    if (!userData.households || userData.households.length === 0) {
+      return [];
+    }
+    
+    const householdPromises = userData.households.map(async (userHousehold) => {
+      const householdDoc = await getDoc(doc(db, 'households', userHousehold.householdId));
+      return householdDoc.exists() ? householdDoc.data() as Household : null;
+    });
+    
+    const households = await Promise.all(householdPromises);
+    return households.filter(household => household !== null) as Household[];
+  } catch (error) {
+    console.error('Error getting user households:', error);
     throw error;
   }
 };

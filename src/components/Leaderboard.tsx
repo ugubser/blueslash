@@ -1,9 +1,17 @@
 import React from 'react';
 import { Trophy, Coins, Crown, Medal, Award } from 'lucide-react';
 import { useHousehold } from '../hooks/useHousehold';
+import { useAuth } from '../hooks/useAuth';
 
 const Leaderboard: React.FC = () => {
-  const { members } = useHousehold();
+  const { user } = useAuth();
+  const { members, household } = useHousehold();
+
+  const getMemberRole = (memberId: string) => {
+    if (!user || !household) return 'member';
+    // Check if this member is the head of household
+    return household.headOfHousehold === memberId ? 'head' : 'member';
+  };
 
   const sortedMembers = [...members].sort((a, b) => b.gems - a.gems);
 
@@ -70,7 +78,7 @@ const Leaderboard: React.FC = () => {
                   <h3 className="font-bold text-gray-800">
                     {member.displayName}
                   </h3>
-                  {member.role === 'head' && (
+                  {getMemberRole(member.id) === 'head' && (
                     <span className="power-up-badge text-xs">
                       👑 HEAD
                     </span>

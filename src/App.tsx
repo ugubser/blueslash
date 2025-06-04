@@ -42,8 +42,9 @@ const AuthenticatedRoutes: React.FC = () => {
 
   // Check for pending invite token after authentication, but only if we're not already on an invite page
   const pendingInviteToken = localStorage.getItem('pendingInviteToken');
+  
   if (pendingInviteToken && !location.pathname.startsWith('/invite/')) {
-    // Redirect to invite processing only if we're not already on an invite page
+    // Always allow invite processing - users can join multiple households
     return <Navigate to={`/invite/${pendingInviteToken}`} replace />;
   }
 

@@ -10,10 +10,22 @@ import { auth, db } from './firebase';
 import type { User } from '../types';
 
 const googleProvider = new GoogleAuthProvider();
+// Add additional scopes and custom parameters for better auth handling
+googleProvider.addScope('email');
+googleProvider.addScope('profile');
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
 
 export const signInWithGoogle = async (): Promise<User | null> => {
   try {
     console.log('Starting Google sign-in...');
+    
+    // Check if we're in a secure context (required for Firebase Auth)
+    if (!window.isSecureContext && import.meta.env.PROD) {
+      throw new Error('Firebase Auth requires HTTPS in production');
+    }
+    
     const result = await signInWithPopup(auth, googleProvider);
     const firebaseUser = result.user;
     console.log('Google sign-in successful:', firebaseUser.uid);
@@ -26,7 +38,7 @@ export const signInWithGoogle = async (): Promise<User | null> => {
         id: firebaseUser.uid,
         email: firebaseUser.email || '',
         displayName: firebaseUser.displayName || '',
-        role: 'member',
+        households: [],
         gems: 0,
         createdAt: new Date()
       };
@@ -50,13 +62,26 @@ export const signInWithGoogle = async (): Promise<User | null> => {
           return null;
         case 'auth/popup-blocked':
           console.error('Popup was blocked by browser');
-          break;
+          throw new Error('Popup blocked. Please enable popups for this site and try again.');
         case 'auth/cancelled-popup-request':
           console.log('Popup request was cancelled');
           return null;
+        case 'auth/unauthorized-domain':
+          console.error('Unauthorized domain for Firebase Auth');
+          throw new Error('This domain is not authorized for Firebase Auth. Please check your Firebase console settings.');
+        case 'auth/operation-not-allowed':
+          console.error('Google sign-in not enabled');
+          throw new Error('Google sign-in is not enabled. Please contact support.');
         default:
           console.error('Auth error code:', error.code);
       }
+    }
+    
+    // Handle storage access errors specifically
+    if (error && typeof error === 'object' && 'message' in error && 
+        typeof error.message === 'string' && error.message.includes('storage')) {
+      console.error('Storage access error - possibly due to service worker or browser restrictions');
+      throw new Error('Authentication failed due to browser restrictions. Please try clearing your browser cache or disabling extensions.');
     }
     
     throw error;

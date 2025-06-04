@@ -1,9 +1,39 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can only read/write their own user document
+    // Users can read/write their own user document
     match /users/{userId} {
-      allow read, write: if request.auth != null
-	  }    
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Users can read other user documents (for household member info)
+    match /users/{userId} {
+      allow read: if request.auth != null;
+    }
+    
+    // Households - users can create, read households they're members of
+    match /households/{householdId} {
+      allow create: if request.auth != null;
+      // Allow reading all households for invite token lookup (needed for join functionality)
+      allow read: if request.auth != null;
+      // Allow writing only if user is member or head of household
+      allow write: if request.auth != null && 
+        (request.auth.uid in resource.data.members || 
+         request.auth.uid == resource.data.headOfHousehold);
+    }
+    
+    // Tasks - users can manage tasks in their household
+    match /tasks/{taskId} {
+      allow create: if request.auth != null;
+      allow read, write: if request.auth != null && 
+        exists(/databases/$(database)/documents/households/$(resource.data.householdId)) &&
+        request.auth.uid in get(/databases/$(database)/documents/households/$(resource.data.householdId)).data.members;
+    }
+    
+    // Gem transactions - users can read their own transactions, create new ones
+    match /gemTransactions/{transactionId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null;
+    }
   }
 }

@@ -6,9 +6,19 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     ...(mode === 'production' ? [VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
+      devOptions: {
+        enabled: false
+      },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // Skip caching Firebase Auth related URLs to prevent conflicts
+        navigateFallbackDenylist: [
+          /^\/__\/auth\/.*/,
+          /^\/auth\/.*/,
+          /firebaseapp\.com/,
+          /googleapis\.com\/identitytoolkit/
+        ],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -30,7 +40,8 @@ export default defineConfig(({ mode }) => ({
         theme_color: '#1e40af',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/'
+        start_url: '/',
+        scope: '/'
       }
     })] : [])
   ],
