@@ -9,7 +9,7 @@ import { getCurrentUser } from '../services/auth';
 const Invite: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const { user, signIn } = useAuth();
+  const { user, signIn, refreshUser } = useAuth();
   const { refreshHousehold } = useHousehold();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +54,10 @@ const Invite: React.FC = () => {
       
       console.log('handleJoinHousehold: Success! Setting success state');
       setSuccess(true);
+      
+      // Force refresh the auth context with updated user data
+      console.log('handleJoinHousehold: Refreshing auth context');
+      await refreshUser();
       
       // Refresh household data with confirmed user update
       console.log('handleJoinHousehold: Refreshing household data');
