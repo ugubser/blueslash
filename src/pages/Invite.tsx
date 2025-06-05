@@ -17,12 +17,13 @@ const Invite: React.FC = () => {
   const hasProcessedRef = useRef(false);
 
   const handleJoinHousehold = useCallback(async () => {
-    if (!token || !user || hasProcessedRef.current || processing) {
+    if (!token || !user || hasProcessedRef.current || processing || success) {
       console.log('handleJoinHousehold: Skipping', { 
         token: !!token, 
         user: !!user, 
         hasProcessed: hasProcessedRef.current,
-        processing 
+        processing,
+        success
       });
       return;
     }
@@ -67,7 +68,7 @@ const Invite: React.FC = () => {
     } finally {
       setProcessing(false);
     }
-  }, [token, user, refreshUser, refreshHousehold, navigate]);
+  }, [token, user, refreshUser, refreshHousehold, navigate, processing, success]);
 
   const handleSignIn = async () => {
     try {
@@ -82,7 +83,13 @@ const Invite: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log('Invite useEffect:', { token, user: !!user, hasToken: !!token, hasProcessed: hasProcessedRef.current, processing });
+    // Early exit if we've already succeeded - don't do any processing
+    if (success) {
+      console.log('Invite useEffect: Already successful, skipping');
+      return;
+    }
+
+    console.log('Invite useEffect:', { token, user: !!user, hasToken: !!token, hasProcessed: hasProcessedRef.current, processing, success });
     
     if (!token) {
       console.log('Invite useEffect: No token, setting error');
@@ -102,10 +109,10 @@ const Invite: React.FC = () => {
       console.log('Invite useEffect: Conditions not met', { 
         user: !!user, 
         hasProcessed: hasProcessedRef.current,
-        processing 
+        processing
       });
     }
-  }, [token, user]); // Remove handleJoinHousehold and processing from dependencies
+  }, [token, user, processing, success, handleJoinHousehold]);
 
   // If user is not authenticated, show login message
   if (!user) {
