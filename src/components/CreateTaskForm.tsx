@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
-import { Plus, Coins, Calendar, FileText } from 'lucide-react';
-import { createTask } from '../services/tasks';
+import React, { useState, useEffect } from 'react';
+import { Plus, Coins, Calendar, FileText, Edit } from 'lucide-react';
+import { createTask, updateTask } from '../services/tasks';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
+import type { Task } from '../types';
 
 interface CreateTaskFormProps {
   onTaskCreated?: () => void;
   onClose?: () => void;
+  editTask?: Task;
 }
 
-const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose }) => {
+const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose, editTask }) => {
   const { user } = useAuth();
   const { household } = useHousehold();
   const [title, setTitle] = useState('');
@@ -19,35 +21,62 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose 
   const [isDraft, setIsDraft] = useState(true);
   const [loading, setLoading] = useState(false);
 
+  const isEditing = !!editTask;
+
+  // Populate form when editing
+  useEffect(() => {
+    if (editTask) {
+      setTitle(editTask.title);
+      setDescription(editTask.description);
+      setDueDate(editTask.dueDate.toISOString().split('T')[0]);
+      setGems(editTask.gems);
+      setIsDraft(editTask.status === 'draft');
+    }
+  }, [editTask]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user || !household || !title.trim()) return;
+    if (!user || (!isEditing && !household) || !title.trim()) return;
 
     try {
       setLoading(true);
       
-      await createTask({
-        householdId: household.id,
-        creatorId: user.id,
-        title: title.trim(),
-        description: description.trim(),
-        status: isDraft ? 'draft' : 'published',
-        dueDate: new Date(dueDate || Date.now() + 3 * 24 * 60 * 60 * 1000),
-        gems,
-        verifications: []
-      });
+      if (isEditing && editTask) {
+        // Update existing task
+        await updateTask(editTask.id, {
+          title: title.trim(),
+          description: description.trim(),
+          status: isDraft ? 'draft' : 'published',
+          dueDate: new Date(dueDate || Date.now() + 3 * 24 * 60 * 60 * 1000),
+          gems
+        });
+      } else {
+        // Create new task
+        await createTask({
+          householdId: household!.id,
+          creatorId: user.id,
+          title: title.trim(),
+          description: description.trim(),
+          status: isDraft ? 'draft' : 'published',
+          dueDate: new Date(dueDate || Date.now() + 3 * 24 * 60 * 60 * 1000),
+          gems,
+          verifications: []
+        });
+      }
 
-      setTitle('');
-      setDescription('');
-      setDueDate('');
-      setGems(10);
-      setIsDraft(true);
+      if (!isEditing) {
+        setTitle('');
+        setDescription('');
+        setDueDate('');
+        setGems(10);
+        setIsDraft(true);
+      }
       
       onTaskCreated?.();
       onClose?.();
     } catch (error) {
-      console.error('Error creating task:', error);
+      console.error(`Error ${isEditing ? 'updating' : 'creating'} task:`, error);
     } finally {
       setLoading(false);
     }
@@ -63,8 +92,14 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose 
     <div className="mario-card">
       <form onSubmit={handleSubmit}>
         <div className="flex items-center gap-3 mb-6">
-          <Plus className="text-mario-blue" size={24} />
-          <h2 className="text-xl font-bold text-gray-800">Create New Task</h2>
+          {isEditing ? (
+            <Edit className="text-mario-blue" size={24} />
+          ) : (
+            <Plus className="text-mario-blue" size={24} />
+          )}
+          <h2 className="text-xl font-bold text-gray-800">
+            {isEditing ? 'Edit Task' : 'Create New Task'}
+          </h2>
         </div>
 
         <div className="space-y-4">
@@ -168,7 +203,10 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose 
             ) : (
               <Plus size={16} />
             )}
-            {isDraft ? 'Save Draft' : 'Create & Publish'}
+            {isEditing 
+              ? (isDraft ? 'Update Draft' : 'Update & Publish')
+              : (isDraft ? 'Save Draft' : 'Create & Publish')
+            }
           </button>
           
           {onClose && (

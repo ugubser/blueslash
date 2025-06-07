@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Coins, User, CheckCircle } from 'lucide-react';
+import { Calendar, Coins, User, CheckCircle, Edit } from 'lucide-react';
 import type { Task } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { updateTaskStatus, verifyTask } from '../services/tasks';
@@ -7,9 +7,10 @@ import { updateTaskStatus, verifyTask } from '../services/tasks';
 interface TaskCardProps {
   task: Task;
   onTaskUpdate?: () => void;
+  onEditTask?: (task: Task) => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) => {
   const { user } = useAuth();
 
   const handleClaimTask = async () => {
@@ -77,6 +78,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate }) => {
   const canComplete = user && task.status === 'claimed' && task.claimedBy === user.id;
   const canVerify = user && task.status === 'completed' && task.claimedBy !== user.id;
   const hasVerified = user && task.verifications.some(v => v.userId === user.id);
+  const canEdit = user && task.status === 'draft' && task.creatorId === user.id;
 
   return (
     <div className={`task-card ${task.status}`}>
@@ -120,6 +122,16 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate }) => {
       )}
 
       <div className="flex gap-2">
+        {canEdit && (
+          <button
+            onClick={() => onEditTask?.(task)}
+            className="mario-button flex items-center gap-2 text-xs flex-1"
+          >
+            <Edit size={14} />
+            Edit Draft
+          </button>
+        )}
+
         {canClaim && (
           <button
             onClick={handleClaimTask}

@@ -2,7 +2,7 @@ export const cleanupServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     try {
       const registrations = await navigator.serviceWorker.getRegistrations();
-      for (let registration of registrations) {
+      for (const registration of registrations) {
         await registration.unregister();
         console.log('Service Worker unregistered:', registration.scope);
       }

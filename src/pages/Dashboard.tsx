@@ -4,10 +4,11 @@ import TaskCard from '../components/TaskCard';
 import CreateTaskForm from '../components/CreateTaskForm';
 import Leaderboard from '../components/Leaderboard';
 import { useHouseholdTasks } from '../hooks/useTasks';
-import type { TaskStatus } from '../types';
+import type { TaskStatus, Task } from '../types';
 
 const Dashboard: React.FC = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
   const { tasks, loading, refreshTasks } = useHouseholdTasks(
     statusFilter === 'all' ? undefined : statusFilter
@@ -15,6 +16,16 @@ const Dashboard: React.FC = () => {
 
   const handleTaskUpdate = () => {
     refreshTasks();
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setShowCreateForm(false);
+  };
+
+  const handleCloseForm = () => {
+    setShowCreateForm(false);
+    setEditingTask(null);
   };
 
   const filteredTasks = statusFilter === 'all' 
@@ -47,7 +58,10 @@ const Dashboard: React.FC = () => {
               </button>
               
               <button
-                onClick={() => setShowCreateForm(true)}
+                onClick={() => {
+                  setShowCreateForm(true);
+                  setEditingTask(null);
+                }}
                 className="mario-button flex items-center gap-2"
               >
                 <Plus size={16} />
@@ -87,12 +101,13 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Create Task Form */}
-          {showCreateForm && (
+          {/* Create/Edit Task Form */}
+          {(showCreateForm || editingTask) && (
             <div className="mb-6">
               <CreateTaskForm
                 onTaskCreated={handleTaskUpdate}
-                onClose={() => setShowCreateForm(false)}
+                onClose={handleCloseForm}
+                editTask={editingTask || undefined}
               />
             </div>
           )}
@@ -109,6 +124,7 @@ const Dashboard: React.FC = () => {
                   key={task.id}
                   task={task}
                   onTaskUpdate={handleTaskUpdate}
+                  onEditTask={handleEditTask}
                 />
               ))}
             </div>
@@ -128,7 +144,10 @@ const Dashboard: React.FC = () => {
               </p>
               {statusFilter === 'all' && (
                 <button
-                  onClick={() => setShowCreateForm(true)}
+                  onClick={() => {
+                    setShowCreateForm(true);
+                    setEditingTask(null);
+                  }}
                   className="mario-button"
                 >
                   Create First Task

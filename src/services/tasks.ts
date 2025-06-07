@@ -40,9 +40,42 @@ export const createTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'upda
   }
 };
 
+export const updateTask = async (taskId: string, updates: Partial<Pick<Task, 'title' | 'description' | 'dueDate' | 'gems' | 'status'>>): Promise<void> => {
+  try {
+    const taskRef = doc(db, 'tasks', taskId);
+    const taskDoc = await getDoc(taskRef);
+    
+    if (!taskDoc.exists()) {
+      throw new Error('Task not found');
+    }
+
+    const currentTask = taskDoc.data() as Task;
+    
+    // Only allow editing draft tasks
+    if (currentTask.status !== 'draft') {
+      throw new Error('Only draft tasks can be edited');
+    }
+
+    const updateData = {
+      ...updates,
+      updatedAt: new Date()
+    };
+
+    await updateDoc(taskRef, updateData);
+
+    // Award gems if task is being published for the first time
+    if (updates.status === 'published' && currentTask.status === 'draft') {
+      await awardGemsForTaskCreation(currentTask.creatorId, updates.gems || currentTask.gems);
+    }
+  } catch (error) {
+    console.error('Error updating task:', error);
+    throw error;
+  }
+};
+
 export const updateTaskStatus = async (taskId: string, status: TaskStatus, userId?: string): Promise<void> => {
   try {
-    const updateData: any = {
+    const updateData: Partial<Task> = {
       status,
       updatedAt: new Date()
     };
@@ -50,7 +83,7 @@ export const updateTaskStatus = async (taskId: string, status: TaskStatus, userI
     if (status === 'claimed' && userId) {
       updateData.claimedBy = userId;
     } else if (status === 'published') {
-      updateData.claimedBy = null;
+      updateData.claimedBy = undefined;
     }
 
     await updateDoc(doc(db, 'tasks', taskId), updateData);
@@ -129,7 +162,19 @@ export const getHouseholdTasks = async (householdId: string, status?: TaskStatus
     }
 
     const tasksSnapshot = await getDocs(tasksQuery);
-    return tasksSnapshot.docs.map(doc => doc.data() as Task);
+    return tasksSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        dueDate: data.dueDate?.toDate ? data.dueDate.toDate() : new Date(data.dueDate),
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
+        verifications: data.verifications?.map((v: any) => ({
+          ...v,
+          verifiedAt: v.verifiedAt?.toDate ? v.verifiedAt.toDate() : new Date(v.verifiedAt)
+        })) || []
+      } as Task;
+    });
   } catch (error) {
     console.error('Error getting household tasks:', error);
     throw error;
@@ -154,7 +199,19 @@ export const getUserTasks = async (userId: string, status?: TaskStatus): Promise
     }
 
     const tasksSnapshot = await getDocs(tasksQuery);
-    return tasksSnapshot.docs.map(doc => doc.data() as Task);
+    return tasksSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        ...data,
+        dueDate: data.dueDate?.toDate ? data.dueDate.toDate() : new Date(data.dueDate),
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
+        verifications: data.verifications?.map((v: any) => ({
+          ...v,
+          verifiedAt: v.verifiedAt?.toDate ? v.verifiedAt.toDate() : new Date(v.verifiedAt)
+        })) || []
+      } as Task;
+    });
   } catch (error) {
     console.error('Error getting user tasks:', error);
     throw error;
