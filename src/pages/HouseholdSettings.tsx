@@ -14,29 +14,57 @@ const HouseholdSettings: React.FC = () => {
   const { household, refreshHousehold } = useHousehold();
   const [members, setMembers] = useState<UserType[]>([]);
   const [inviteLink, setInviteLink] = useState<string>('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [generatingLink, setGeneratingLink] = useState(false);
   const [removingMember, setRemovingMember] = useState<string | null>(null);
 
   const isHeadOfHousehold = user && household && household.headOfHousehold === user.id;
 
-  useEffect(() => {
-    loadMembers();
-  }, [household]);
-
   const loadMembers = async () => {
-    if (!household) return;
+    if (!household) {
+      console.log('No household found, skipping member load');
+      setLoading(false);
+      return;
+    }
+    
+    console.log('Loading members for household:', household.id);
     
     try {
       setLoading(true);
       const householdMembers = await getHouseholdMembers(household.id);
+      console.log('Loaded members:', householdMembers);
       setMembers(householdMembers);
     } catch (error) {
       console.error('Error loading members:', error);
+      // Set empty array as fallback
+      setMembers([]);
     } finally {
+      console.log('Setting loading to false');
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    console.log('HouseholdSettings mounted, user:', user?.id, 'household:', household?.id, 'isHead:', isHeadOfHousehold);
+    if (household) {
+      loadMembers();
+    } else {
+      // If no household, ensure loading is false
+      setLoading(false);
+    }
+  }, [household]);
+
+  // Safety timeout to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.log('Loading timeout reached, forcing loading to false');
+        setLoading(false);
+      }
+    }, 10000); // 10 second timeout
+
+    return () => clearTimeout(timeout);
+  }, [loading]);
 
   const handleGenerateInviteLink = async () => {
     if (!household || !isHeadOfHousehold) return;
@@ -85,9 +113,59 @@ const HouseholdSettings: React.FC = () => {
     }
   };
 
-  if (!user || !household) {
-    return <div>Loading...</div>;
+  console.log('HouseholdSettings render - user:', !!user, 'household:', !!household, 'loading:', loading, 'isHead:', isHeadOfHousehold);
+  
+  // Add error boundary for date formatting
+  const formatDate = (date: any) => {
+    try {
+      if (date instanceof Date) {
+        return date.toLocaleDateString();
+      }
+      if (date && date.toDate) {
+        return date.toDate().toLocaleDateString();
+      }
+      return new Date(date).toLocaleDateString();
+    } catch (error) {
+      console.error('Date formatting error:', error);
+      return 'Unknown date';
+    }
+  };
+
+  if (!user) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mario-card text-center py-12">
+          <p className="text-red-600">No user found. Please log in.</p>
+        </div>
+      </div>
+    );
   }
+
+  if (!household) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mario-card text-center py-12">
+          <div className="loading-spinner w-12 h-12 mx-auto mb-4" />
+          <p className="text-gray-600">Loading household...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isHeadOfHousehold) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mario-card text-center py-12">
+          <p className="text-red-600">Only the head of household can access these settings.</p>
+          <p className="text-gray-600 mt-2">Current head: {household?.headOfHousehold || 'Unknown'}</p>
+          <p className="text-gray-600">Your ID: {user?.id || 'Unknown'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Wrap the main content in a try-catch to prevent crashes
+  try {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -106,7 +184,7 @@ const HouseholdSettings: React.FC = () => {
         <div className="space-y-2">
           <p><strong>Name:</strong> {household.name}</p>
           <p><strong>Members:</strong> {members.length}</p>
-          <p><strong>Created:</strong> {household.createdAt.toLocaleDateString()}</p>
+          <p><strong>Created:</strong> {formatDate(household.createdAt)}</p>
         </div>
       </div>
 
@@ -215,6 +293,23 @@ const HouseholdSettings: React.FC = () => {
       </div>
     </div>
   );
+  } catch (error) {
+    console.error('HouseholdSettings render error:', error);
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mario-card text-center py-12">
+          <p className="text-red-600">Error loading household settings</p>
+          <p className="text-gray-600 mt-2">Please try refreshing the page</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mario-button mt-4"
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default HouseholdSettings;
