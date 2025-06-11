@@ -201,6 +201,52 @@ export const switchHousehold = async (userId: string, householdId: string): Prom
   }
 };
 
+export const removeMemberFromHousehold = async (householdId: string, memberId: string, requesterId: string): Promise<void> => {
+  try {
+    const household = await getHousehold(householdId);
+    if (!household) {
+      throw new Error('Household not found');
+    }
+    
+    // Only head of household can remove members
+    if (household.headOfHousehold !== requesterId) {
+      throw new Error('Only the head of household can remove members');
+    }
+    
+    // Cannot remove the head of household
+    if (memberId === household.headOfHousehold) {
+      throw new Error('Cannot remove the head of household');
+    }
+    
+    // Remove user from household members list
+    await updateDoc(doc(db, 'households', householdId), {
+      members: arrayRemove(memberId)
+    });
+    
+    // Remove household from user's households array
+    const userDoc = await getDoc(doc(db, 'users', memberId));
+    if (userDoc.exists()) {
+      const userData = userDoc.data() as User;
+      const userHouseholds = userData.households || [];
+      const updatedHouseholds = userHouseholds.filter(h => h.householdId !== householdId);
+      
+      const updateData: { households: UserHousehold[]; currentHouseholdId?: string | null } = {
+        households: updatedHouseholds
+      };
+      
+      // If this was their current household, clear it
+      if (userData.currentHouseholdId === householdId) {
+        updateData.currentHouseholdId = updatedHouseholds.length > 0 ? updatedHouseholds[0].householdId : null;
+      }
+      
+      await updateDoc(doc(db, 'users', memberId), updateData);
+    }
+  } catch (error) {
+    console.error('Error removing member from household:', error);
+    throw error;
+  }
+};
+
 export const getUserHouseholds = async (userId: string): Promise<Household[]> => {
   try {
     const userDoc = await getDoc(doc(db, 'users', userId));

@@ -77,27 +77,24 @@ const Dashboard: React.FC = () => {
               <h3 className="font-bold text-gray-800">Filter Tasks</h3>
             </div>
             
-            <div className="flex flex-wrap gap-2">
-              {[
-                { value: 'all', label: 'All Tasks' },
-                { value: 'published', label: 'Available' },
-                { value: 'claimed', label: 'In Progress' },
-                { value: 'completed', label: 'Completed' },
-                { value: 'verified', label: 'Verified' },
-                { value: 'draft', label: 'Drafts' }
-              ].map(({ value, label }) => (
-                <button
-                  key={value}
-                  onClick={() => setStatusFilter(value as TaskStatus | 'all')}
-                  className={`px-4 py-2 rounded-lg border-2 font-bold text-sm transition-all ${
-                    statusFilter === value
-                      ? 'border-mario-blue bg-mario-blue text-white'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-mario-blue'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
+            <div className="relative">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as TaskStatus | 'all')}
+                className="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg font-bold text-gray-700 focus:border-mario-blue focus:outline-none hover:border-mario-blue transition-colors appearance-none cursor-pointer"
+              >
+                <option value="all">All Tasks</option>
+                <option value="published">Available</option>
+                <option value="claimed">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="verified">Verified</option>
+                <option value="draft">Drafts</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                <svg className="w-4 h-4 fill-current text-gray-400" viewBox="0 0 20 20">
+                  <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                </svg>
+              </div>
             </div>
           </div>
 

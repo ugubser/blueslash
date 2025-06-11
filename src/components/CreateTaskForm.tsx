@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Coins, Calendar, FileText, Edit } from 'lucide-react';
+import { Plus, Coins, Calendar, FileText, Edit, Repeat } from 'lucide-react';
 import { createTask, updateTask } from '../services/tasks';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
-import type { Task } from '../types';
+import type { Task, RecurrenceConfig } from '../types';
 
 interface CreateTaskFormProps {
   onTaskCreated?: () => void;
@@ -19,6 +19,9 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
   const [dueDate, setDueDate] = useState('');
   const [gems, setGems] = useState(10);
   const [isDraft, setIsDraft] = useState(true);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceType, setRecurrenceType] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
+  const [recurrenceInterval, setRecurrenceInterval] = useState(1);
   const [loading, setLoading] = useState(false);
 
   const isEditing = !!editTask;
@@ -31,6 +34,13 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
       setDueDate(editTask.dueDate.toISOString().split('T')[0]);
       setGems(editTask.gems);
       setIsDraft(editTask.status === 'draft');
+      setIsRecurring(!!editTask.recurrence);
+      if (editTask.recurrence) {
+        if (editTask.recurrence.type !== 'custom') {
+          setRecurrenceType(editTask.recurrence.type);
+        }
+        setRecurrenceInterval(editTask.recurrence.interval);
+      }
     }
   }, [editTask]);
 
@@ -42,6 +52,11 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
     try {
       setLoading(true);
       
+      const recurrence: RecurrenceConfig | undefined = isRecurring ? {
+        type: recurrenceType,
+        interval: recurrenceInterval
+      } : undefined;
+      
       if (isEditing && editTask) {
         // Update existing task
         await updateTask(editTask.id, {
@@ -49,7 +64,8 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
           description: description.trim(),
           status: isDraft ? 'draft' : 'published',
           dueDate: new Date(dueDate || Date.now() + 3 * 24 * 60 * 60 * 1000),
-          gems
+          gems,
+          recurrence
         });
       } else {
         // Create new task
@@ -61,6 +77,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
           status: isDraft ? 'draft' : 'published',
           dueDate: new Date(dueDate || Date.now() + 3 * 24 * 60 * 60 * 1000),
           gems,
+          recurrence,
           verifications: []
         });
       }
@@ -71,6 +88,9 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
         setDueDate('');
         setGems(10);
         setIsDraft(true);
+        setIsRecurring(false);
+        setRecurrenceType('weekly');
+        setRecurrenceInterval(1);
       }
       
       onTaskCreated?.();
@@ -168,6 +188,69 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
                 <option value={25}>25 gems - Major task</option>
               </select>
             </div>
+          </div>
+
+          <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <input
+                type="checkbox"
+                id="isRecurring"
+                checked={isRecurring}
+                onChange={(e) => setIsRecurring(e.target.checked)}
+                className="w-4 h-4 text-mario-blue"
+              />
+              <label htmlFor="isRecurring" className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                <Repeat size={16} />
+                Make this a recurring task
+              </label>
+            </div>
+            
+            {isRecurring && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Frequency
+                  </label>
+                  <select
+                    value={recurrenceType}
+                    onChange={(e) => setRecurrenceType(e.target.value as 'daily' | 'weekly' | 'monthly')}
+                    className="mario-input"
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Repeat every
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={recurrenceInterval}
+                      onChange={(e) => setRecurrenceInterval(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="mario-input w-20"
+                    />
+                    <span className="text-sm text-gray-600">
+                      {recurrenceType === 'daily' ? 'day(s)' : 
+                       recurrenceType === 'weekly' ? 'week(s)' : 
+                       'month(s)'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <p className="text-xs text-gray-600 mt-2">
+              {isRecurring 
+                ? "A new copy of this task will be created based on the schedule. You can modify it before publishing."
+                : "One-time task that won't repeat after completion."
+              }
+            </p>
           </div>
 
           <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">

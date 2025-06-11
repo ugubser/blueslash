@@ -6,6 +6,7 @@ import Header from './components/Header';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import HouseholdSetup from './pages/HouseholdSetup';
+import HouseholdSettings from './pages/HouseholdSettings';
 import Invite from './pages/Invite';
 import './styles/index.css';
 
@@ -68,6 +69,7 @@ const AuthenticatedRoutes: React.FC = () => {
       <Header />
       <Routes>
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/household-settings" element={<HouseholdSettings />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Calendar, Coins, User, CheckCircle, Edit } from 'lucide-react';
+import { Calendar, Coins, User, CheckCircle, Edit, Repeat } from 'lucide-react';
 import type { Task } from '../types';
 import { useAuth } from '../hooks/useAuth';
-import { updateTaskStatus, verifyTask } from '../services/tasks';
+import { updateTaskStatus, verifyTask, createRecurringTask } from '../services/tasks';
 
 interface TaskCardProps {
   task: Task;
@@ -21,6 +21,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) =
       onTaskUpdate?.();
     } catch (error) {
       console.error('Error claiming task:', error);
+      if (error instanceof Error && error.message.includes('no longer available')) {
+        alert('This task has already been claimed by someone else.');
+        onTaskUpdate?.();
+      }
     }
   };
 
@@ -43,6 +47,19 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) =
       onTaskUpdate?.();
     } catch (error) {
       console.error('Error verifying task:', error);
+    }
+  };
+
+  const handleCreateRecurringTask = async () => {
+    if (!user || !task.recurrence) return;
+    
+    try {
+      await createRecurringTask(task, user.id);
+      onTaskUpdate?.();
+      alert('New recurring task created! Check your drafts to customize and publish it.');
+    } catch (error) {
+      console.error('Error creating recurring task:', error);
+      alert('Failed to create recurring task');
     }
   };
 
@@ -79,11 +96,27 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) =
   const canVerify = user && task.status === 'completed' && task.claimedBy !== user.id;
   const hasVerified = user && task.verifications.some(v => v.userId === user.id);
   const canEdit = user && task.status === 'draft' && task.creatorId === user.id;
+  const canCreateRecurring = user && task.recurrence && (task.status === 'verified' || task.status === 'completed');
 
   return (
     <div className={`task-card ${task.status}`}>
       <div className="flex justify-between items-start mb-3">
-        <h3 className="font-bold text-lg text-gray-800">{task.title}</h3>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-bold text-lg text-gray-800">{task.title}</h3>
+            {task.recurrence && (
+              <div className="flex items-center gap-1 text-green-600 text-xs">
+                <Repeat size={14} />
+                <span className="font-bold">
+                  {task.recurrence.interval > 1 ? task.recurrence.interval : ''} 
+                  {task.recurrence.type === 'daily' ? 'Daily' : 
+                   task.recurrence.type === 'weekly' ? 'Weekly' : 
+                   'Monthly'}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
         {getStatusBadge()}
       </div>
 
@@ -181,6 +214,16 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) =
             <CheckCircle size={16} />
             <span>Task completed and verified!</span>
           </div>
+        )}
+
+        {canCreateRecurring && (
+          <button
+            onClick={handleCreateRecurringTask}
+            className="mario-button flex items-center gap-2 text-xs flex-1"
+          >
+            <Repeat size={14} />
+            Create Next Task
+          </button>
         )}
       </div>
     </div>

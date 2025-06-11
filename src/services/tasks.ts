@@ -10,7 +10,8 @@ import {
   getDocs,
   orderBy,
   addDoc,
-  arrayUnion
+  arrayUnion,
+  runTransaction
 } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Task, TaskStatus, Verification, GemTransaction } from '../types';
@@ -40,7 +41,7 @@ export const createTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'upda
   }
 };
 
-export const updateTask = async (taskId: string, updates: Partial<Pick<Task, 'title' | 'description' | 'dueDate' | 'gems' | 'status'>>): Promise<void> => {
+export const updateTask = async (taskId: string, updates: Partial<Pick<Task, 'title' | 'description' | 'dueDate' | 'gems' | 'status' | 'recurrence'>>): Promise<void> => {
   try {
     const taskRef = doc(db, 'tasks', taskId);
     const taskDoc = await getDoc(taskRef);
@@ -75,24 +76,49 @@ export const updateTask = async (taskId: string, updates: Partial<Pick<Task, 'ti
 
 export const updateTaskStatus = async (taskId: string, status: TaskStatus, userId?: string): Promise<void> => {
   try {
-    const updateData: Partial<Task> = {
-      status,
-      updatedAt: new Date()
-    };
-
     if (status === 'claimed' && userId) {
-      updateData.claimedBy = userId;
-    } else if (status === 'published') {
-      updateData.claimedBy = undefined;
-    }
+      // Use transaction to prevent concurrent claiming
+      await runTransaction(db, async (transaction) => {
+        const taskRef = doc(db, 'tasks', taskId);
+        const taskDoc = await transaction.get(taskRef);
+        
+        if (!taskDoc.exists()) {
+          throw new Error('Task not found');
+        }
+        
+        const currentTask = taskDoc.data() as Task;
+        
+        // Check if task is still available for claiming
+        if (currentTask.status !== 'published' || currentTask.claimedBy) {
+          throw new Error('Task is no longer available for claiming');
+        }
+        
+        // Update task with claim
+        transaction.update(taskRef, {
+          status: 'claimed',
+          claimedBy: userId,
+          updatedAt: new Date()
+        });
+      });
+    } else {
+      // For other status updates, use regular update
+      const updateData: Partial<Task> = {
+        status,
+        updatedAt: new Date()
+      };
 
-    await updateDoc(doc(db, 'tasks', taskId), updateData);
+      if (status === 'published') {
+        updateData.claimedBy = undefined;
+      }
 
-    if (status === 'published') {
-      const taskDoc = await getDoc(doc(db, 'tasks', taskId));
-      if (taskDoc.exists()) {
-        const task = taskDoc.data() as Task;
-        await awardGemsForTaskCreation(task.creatorId, Math.floor(task.gems * 0.1));
+      await updateDoc(doc(db, 'tasks', taskId), updateData);
+
+      if (status === 'published') {
+        const taskDoc = await getDoc(doc(db, 'tasks', taskId));
+        if (taskDoc.exists()) {
+          const task = taskDoc.data() as Task;
+          await awardGemsForTaskCreation(task.creatorId, Math.floor(task.gems * 0.1));
+        }
       }
     }
   } catch (error) {
@@ -169,7 +195,7 @@ export const getHouseholdTasks = async (householdId: string, status?: TaskStatus
         dueDate: data.dueDate?.toDate ? data.dueDate.toDate() : new Date(data.dueDate),
         createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
         updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
-        verifications: data.verifications?.map((v: any) => ({
+        verifications: data.verifications?.map((v: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
           ...v,
           verifiedAt: v.verifiedAt?.toDate ? v.verifiedAt.toDate() : new Date(v.verifiedAt)
         })) || []
@@ -206,7 +232,7 @@ export const getUserTasks = async (userId: string, status?: TaskStatus): Promise
         dueDate: data.dueDate?.toDate ? data.dueDate.toDate() : new Date(data.dueDate),
         createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
         updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
-        verifications: data.verifications?.map((v: any) => ({
+        verifications: data.verifications?.map((v: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
           ...v,
           verifiedAt: v.verifiedAt?.toDate ? v.verifiedAt.toDate() : new Date(v.verifiedAt)
         })) || []
@@ -214,6 +240,27 @@ export const getUserTasks = async (userId: string, status?: TaskStatus): Promise
     });
   } catch (error) {
     console.error('Error getting user tasks:', error);
+    throw error;
+  }
+};
+
+export const createRecurringTask = async (originalTask: Task, userId: string): Promise<Task> => {
+  try {
+    const recurringTaskData = {
+      householdId: originalTask.householdId,
+      creatorId: userId,
+      title: originalTask.title,
+      description: originalTask.description,
+      status: 'draft' as const,
+      dueDate: originalTask.dueDate,
+      gems: originalTask.gems,
+      recurrence: originalTask.recurrence,
+      verifications: []
+    };
+
+    return await createTask(recurringTaskData);
+  } catch (error) {
+    console.error('Error creating recurring task:', error);
     throw error;
   }
 };
