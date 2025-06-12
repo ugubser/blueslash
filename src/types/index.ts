@@ -29,6 +29,14 @@ export interface InviteLink {
   expiresAt?: Date;
 }
 
+export interface InviteToken {
+  id: string; // This will be the token itself
+  householdId: string;
+  createdBy: string;
+  expiresAt?: Date;
+  createdAt: Date;
+}
+
 export interface Task {
   id: string;
   householdId: string;

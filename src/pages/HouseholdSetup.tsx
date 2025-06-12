@@ -20,7 +20,7 @@ const HouseholdSetup: React.FC = () => {
     try {
       setLoading(true);
       const household = await createHousehold(householdName.trim(), user.id);
-      const link = await generateInviteLink(household.id);
+      const link = await generateInviteLink(household.id, user.id);
       setInviteLink(link);
       await refreshHousehold();
     } catch (error) {

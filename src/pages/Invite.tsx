@@ -68,7 +68,7 @@ const Invite: React.FC = () => {
     } finally {
       setProcessing(false);
     }
-  }, [token, user, refreshUser, refreshHousehold, navigate, processing, success]);
+  }, [token, user?.id, refreshUser, refreshHousehold, navigate]); // Removed processing and success from dependencies
 
   const handleSignIn = async () => {
     try {
@@ -112,7 +112,7 @@ const Invite: React.FC = () => {
         processing
       });
     }
-  }, [token, user, processing, success, handleJoinHousehold]);
+  }, [token, user, processing, success]); // Removed handleJoinHousehold from dependencies
 
   // If user is not authenticated, show login message
   if (!user) {

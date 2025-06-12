@@ -67,11 +67,11 @@ const HouseholdSettings: React.FC = () => {
   }, [loading]);
 
   const handleGenerateInviteLink = async () => {
-    if (!household || !isHeadOfHousehold) return;
+    if (!household || !isHeadOfHousehold || !user) return;
     
     try {
       setGeneratingLink(true);
-      const link = await generateInviteLink(household.id);
+      const link = await generateInviteLink(household.id, user.id);
       setInviteLink(link);
     } catch (error) {
       console.error('Error generating invite link:', error);
