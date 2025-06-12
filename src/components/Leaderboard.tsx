@@ -90,10 +90,10 @@ const Leaderboard: React.FC = () => {
             How to Earn Gems:
           </h4>
           <ul className="text-xs text-gray-600 space-y-1">
-            <li>• Create detailed tasks: 5-15 gems</li>
+            <li>• Create detailed tasks and let the AI determine the effort: 5-25 gems</li>
             <li>• Complete tasks: Full gem reward</li>
             <li>• Verify others' work: 3 gems</li>
-            <li>• Publish tasks: 10% of task value</li>
+          
           </ul>
         </div>
       )}
