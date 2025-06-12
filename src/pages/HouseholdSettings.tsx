@@ -20,6 +20,7 @@ const HouseholdSettings: React.FC = () => {
   const [removingMember, setRemovingMember] = useState<string | null>(null);
   const [gemPrompt, setGemPrompt] = useState<string>('');
   const [savingPrompt, setSavingPrompt] = useState(false);
+  const [allowGemOverride, setAllowGemOverride] = useState<boolean>(false);
 
   const isHeadOfHousehold = user && household && household.headOfHousehold === user.id;
 
@@ -63,6 +64,7 @@ Shopping or doing external activity for the household is 20 Gems, regardless of 
 If something exceed any of these things, then it's 25 Gems.`;
       
       setGemPrompt(household.gemPrompt || defaultPrompt);
+      setAllowGemOverride(household.allowGemOverride || false);
     } else {
       // If no household, ensure loading is false
       setLoading(false);
@@ -133,12 +135,15 @@ If something exceed any of these things, then it's 25 Gems.`;
     
     try {
       setSavingPrompt(true);
-      await updateHousehold(household.id, { gemPrompt });
+      await updateHousehold(household.id, { 
+        gemPrompt,
+        allowGemOverride
+      });
       await refreshHousehold();
-      alert('Gem calculation prompt saved successfully!');
+      alert('Gem calculation settings saved successfully!');
     } catch (error) {
-      console.error('Error saving gem prompt:', error);
-      alert('Failed to save gem prompt');
+      console.error('Error saving gem settings:', error);
+      alert('Failed to save gem settings');
     } finally {
       setSavingPrompt(false);
     }
@@ -243,6 +248,27 @@ If something exceed any of these things, then it's 25 Gems.`;
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mario-blue focus:border-transparent"
                 placeholder="Enter guidelines for how the AI should calculate gem values..."
               />
+            </div>
+            
+            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center gap-3 mb-2">
+                <input
+                  type="checkbox"
+                  id="allowGemOverride"
+                  checked={allowGemOverride}
+                  onChange={(e) => setAllowGemOverride(e.target.checked)}
+                  className="w-4 h-4 text-mario-blue"
+                />
+                <label htmlFor="allowGemOverride" className="text-sm font-bold text-gray-700">
+                  Allow users to override AI-calculated gem values
+                </label>
+              </div>
+              <p className="text-xs text-gray-600">
+                {allowGemOverride 
+                  ? "Users can manually adjust gem values after AI calculation."
+                  : "Users must use the AI-calculated gem values and cannot modify them."
+                }
+              </p>
             </div>
             
             <button

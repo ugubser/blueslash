@@ -21,6 +21,7 @@ export interface Household {
   members: string[];
   inviteLinks: InviteLink[];
   gemPrompt?: string;
+  allowGemOverride?: boolean;
   createdAt: Date;
 }
 

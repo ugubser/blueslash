@@ -26,8 +26,12 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
   const [loading, setLoading] = useState(false);
   const [calculatingGems, setCalculatingGems] = useState(false);
   const [gemCalculationError, setGemCalculationError] = useState<string | null>(null);
+  const [hasUsedAI, setHasUsedAI] = useState(false);
 
   const isEditing = !!editTask;
+  
+  // Determine if gem editing should be disabled
+  const isGemEditingDisabled = !isEditing && hasUsedAI && household?.allowGemOverride === false;
 
   // Populate form when editing
   useEffect(() => {
@@ -38,6 +42,8 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
       setGems(editTask.gems);
       setIsDraft(editTask.status === 'draft');
       setIsRecurring(!!editTask.recurrence);
+      setHasUsedAI(false); // Reset AI flag when editing
+      setGemCalculationError(null);
       if (editTask.recurrence) {
         if (editTask.recurrence.type !== 'custom') {
           setRecurrenceType(editTask.recurrence.type);
@@ -94,6 +100,8 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
         setIsRecurring(false);
         setRecurrenceType('weekly');
         setRecurrenceInterval(1);
+        setHasUsedAI(false);
+        setGemCalculationError(null);
       }
       
       onTaskCreated?.();
@@ -133,6 +141,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
       
       if (data.success && data.gems) {
         setGems(data.gems);
+        setHasUsedAI(true);
       } else {
         throw new Error(data.error || 'Failed to calculate gems');
       }
@@ -221,7 +230,8 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
                       max="25"
                       value={gems}
                       onChange={(e) => setGems(Math.max(5, Math.min(25, Number(e.target.value))))}
-                      className="mario-input"
+                      disabled={isGemEditingDisabled}
+                      className={`mario-input ${isGemEditingDisabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                       placeholder="Gem value (5-25)"
                     />
                   </div>
@@ -243,7 +253,10 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
                   <p className="text-red-600 text-xs">{gemCalculationError}</p>
                 )}
                 <p className="text-xs text-gray-500">
-                  Use AI to calculate gem value based on task description, or enter manually (5-25 gems)
+                  {isGemEditingDisabled 
+                    ? "Gem value set by AI and cannot be modified (household setting)"
+                    : "Use AI to calculate gem value based on task description, or enter manually (5-25 gems)"
+                  }
                 </p>
               </div>
             </div>
