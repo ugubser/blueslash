@@ -339,11 +339,11 @@ const recordGemTransaction = async (
   try {
     const transaction: Omit<GemTransaction, 'id'> = {
       userId,
-      taskId,
       amount,
       type,
       description,
-      createdAt: new Date()
+      createdAt: new Date(),
+      ...(taskId && { taskId }) // Only include taskId if it's defined
     };
 
     await addDoc(collection(db, 'gemTransactions'), transaction);
