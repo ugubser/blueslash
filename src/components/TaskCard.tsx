@@ -1,8 +1,8 @@
 import React from 'react';
-import { Calendar, Coins, User, CheckCircle, Edit, Repeat } from 'lucide-react';
+import { Calendar, Coins, User, CheckCircle, Edit, Repeat, Trash2, ArrowLeft, X } from 'lucide-react';
 import type { Task } from '../types';
 import { useAuth } from '../hooks/useAuth';
-import { updateTaskStatus, verifyTask, createRecurringTask } from '../services/tasks';
+import { updateTaskStatus, verifyTask, createRecurringTask, deleteTask } from '../services/tasks';
 
 interface TaskCardProps {
   task: Task;
@@ -63,6 +63,44 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) =
     }
   };
 
+  const handleDeleteTask = async () => {
+    if (!user || task.status !== 'draft' || task.creatorId !== user.id) return;
+    
+    if (!confirm('Are you sure you want to delete this draft task? This action cannot be undone.')) return;
+    
+    try {
+      await deleteTask(task.id);
+      onTaskUpdate?.();
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      alert('Failed to delete task');
+    }
+  };
+
+  const handleUnpublishTask = async () => {
+    if (!user || task.status !== 'published' || task.creatorId !== user.id) return;
+    
+    try {
+      await updateTaskStatus(task.id, 'draft');
+      onTaskUpdate?.();
+    } catch (error) {
+      console.error('Error unpublishing task:', error);
+      alert('Failed to unpublish task');
+    }
+  };
+
+  const handleUnclaimTask = async () => {
+    if (!user || task.status !== 'claimed' || task.claimedBy !== user.id) return;
+    
+    try {
+      await updateTaskStatus(task.id, 'published');
+      onTaskUpdate?.();
+    } catch (error) {
+      console.error('Error unclaiming task:', error);
+      alert('Failed to unclaim task');
+    }
+  };
+
   const getStatusBadge = () => {
     const statusClasses = {
       draft: 'status-draft',
@@ -96,6 +134,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) =
   const canVerify = user && task.status === 'completed' && task.claimedBy !== user.id;
   const hasVerified = user && task.verifications.some(v => v.userId === user.id);
   const canEdit = user && task.status === 'draft' && task.creatorId === user.id;
+  const canDelete = user && task.status === 'draft' && task.creatorId === user.id;
+  const canUnpublish = user && task.status === 'published' && task.creatorId === user.id;
+  const canUnclaim = user && task.status === 'claimed' && task.claimedBy === user.id;
   const canCreateRecurring = user && task.recurrence && (task.status === 'verified' || task.status === 'completed');
 
   return (
@@ -162,6 +203,36 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) =
           >
             <Edit size={14} />
             Edit Draft
+          </button>
+        )}
+
+        {canDelete && (
+          <button
+            onClick={handleDeleteTask}
+            className="mario-button-blue flex items-center gap-2 text-xs flex-1"
+          >
+            <Trash2 size={14} />
+            Delete
+          </button>
+        )}
+
+        {canUnpublish && (
+          <button
+            onClick={handleUnpublishTask}
+            className="mario-button-blue flex items-center gap-2 text-xs flex-1"
+          >
+            <ArrowLeft size={14} />
+            Unpublish
+          </button>
+        )}
+
+        {canUnclaim && (
+          <button
+            onClick={handleUnclaimTask}
+            className="mario-button-blue flex items-center gap-2 text-xs flex-1"
+          >
+            <X size={14} />
+            Unclaim
           </button>
         )}
 

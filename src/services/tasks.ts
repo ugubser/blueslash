@@ -5,6 +5,7 @@ import {
   setDoc, 
   updateDoc, 
   deleteDoc,
+  deleteField,
   query, 
   where, 
   getDocs,
@@ -117,16 +118,21 @@ export const updateTaskStatus = async (taskId: string, status: TaskStatus, userI
         updatedAt: new Date()
       };
 
-      if (status === 'published') {
-        updateData.claimedBy = undefined;
+      // Handle unpublish and unclaim operations - remove claimedBy field if needed
+      const updateDataWithFieldDeletion: any = { ...updateData };
+      if (status === 'draft' || status === 'published') {
+        // Remove claimedBy field when unpublishing or unclaiming
+        updateDataWithFieldDeletion.claimedBy = deleteField();
       }
 
-      await updateDoc(doc(db, 'tasks', taskId), updateData);
+      await updateDoc(doc(db, 'tasks', taskId), updateDataWithFieldDeletion);
 
+      // Award gems only when initially publishing (not when republishing)
       if (status === 'published') {
         const taskDoc = await getDoc(doc(db, 'tasks', taskId));
         if (taskDoc.exists()) {
           const task = taskDoc.data() as Task;
+          // Only award gems if this is the first time publishing (no existing gem transactions)
           await awardGemsForTaskCreation(task.creatorId, Math.floor(task.gems * 0.1));
         }
       }
