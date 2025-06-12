@@ -28,7 +28,12 @@ export const createTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'upda
       updatedAt: new Date()
     };
 
-    await setDoc(doc(db, 'tasks', taskId), task);
+    // Filter out undefined values for Firestore
+    const taskForFirestore = Object.fromEntries(
+      Object.entries(task).filter(([_, value]) => value !== undefined)
+    );
+
+    await setDoc(doc(db, 'tasks', taskId), taskForFirestore);
 
     if (task.status === 'published') {
       await awardGemsForTaskCreation(task.creatorId, task.gems);
@@ -62,7 +67,12 @@ export const updateTask = async (taskId: string, updates: Partial<Pick<Task, 'ti
       updatedAt: new Date()
     };
 
-    await updateDoc(taskRef, updateData);
+    // Filter out undefined values for Firestore
+    const updateDataForFirestore = Object.fromEntries(
+      Object.entries(updateData).filter(([_, value]) => value !== undefined)
+    );
+
+    await updateDoc(taskRef, updateDataForFirestore);
 
     // Award gems if task is being published for the first time
     if (updates.status === 'published' && currentTask.status === 'draft') {

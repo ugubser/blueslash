@@ -155,7 +155,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="lg:w-80">
+        <div className="lg:w-96">
           <Leaderboard />
         </div>
       </div>

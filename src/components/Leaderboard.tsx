@@ -1,17 +1,10 @@
 import React from 'react';
 import { Trophy, Coins, Crown, Medal, Award } from 'lucide-react';
 import { useHousehold } from '../hooks/useHousehold';
-import { useAuth } from '../hooks/useAuth';
 
 const Leaderboard: React.FC = () => {
-  const { user } = useAuth();
-  const { members, household } = useHousehold();
+  const { members } = useHousehold();
 
-  const getMemberRole = (memberId: string) => {
-    if (!user || !household) return 'member';
-    // Check if this member is the head of household
-    return household.headOfHousehold === memberId ? 'head' : 'member';
-  };
 
   const sortedMembers = [...members].sort((a, b) => b.gems - a.gems);
 
@@ -68,30 +61,21 @@ const Leaderboard: React.FC = () => {
             key={member.id}
             className={`leaderboard-item ${getRankClass(index)}`}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-1">
               <div className="flex items-center justify-center w-8 h-8">
                 {getRankIcon(index)}
               </div>
               
               <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-gray-800">
-                    {member.displayName}
-                  </h3>
-                  {getMemberRole(member.id) === 'head' && (
-                    <span className="power-up-badge text-xs">
-                      👑 HEAD
-                    </span>
-                  )}
-                </div>
+                <h3 className="font-bold text-gray-800">
+                  {member.displayName}
+                </h3>
                 <p className="text-xs text-gray-500">
                   #{index + 1} in household
                 </p>
               </div>
-            </div>
 
-            <div className="flex items-center gap-2">
-              <div className="gem-counter">
+              <div className="gem-counter ml-auto">
                 <Coins className="coin-icon" size={16} />
                 <span className="font-bold">{member.gems.toLocaleString()}</span>
               </div>
