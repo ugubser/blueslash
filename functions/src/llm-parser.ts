@@ -135,8 +135,8 @@ const openai = new OpenAI({
   apiKey: openRouterKey, // Let the OpenAI library handle authorization
   baseURL: openRouterBaseUrl,
   defaultHeaders: {
-    'HTTP-Referer': 'https://okdates.web.app', // Required for OpenRouter
-    'X-Title': 'OkDates App' // Required for OpenRouter
+    'HTTP-Referer': 'https://blueslash.tribecans.com', // Required for OpenRouter
+    'X-Title': 'BlueSlash App' // Required for OpenRouter
   }
 });
 
