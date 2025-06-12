@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Link, Trash2, Copy, Plus, Crown, User } from 'lucide-react';
+import { Users, Link, Trash2, Copy, Plus, Crown, User, Brain, Save } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
 import { 
   generateInviteLink, 
   getHouseholdMembers, 
-  removeMemberFromHousehold 
+  removeMemberFromHousehold,
+  updateHousehold 
 } from '../services/households';
 import type { User as UserType } from '../types';
 
@@ -17,6 +18,8 @@ const HouseholdSettings: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [generatingLink, setGeneratingLink] = useState(false);
   const [removingMember, setRemovingMember] = useState<string | null>(null);
+  const [gemPrompt, setGemPrompt] = useState<string>('');
+  const [savingPrompt, setSavingPrompt] = useState(false);
 
   const isHeadOfHousehold = user && household && household.headOfHousehold === user.id;
 
@@ -48,6 +51,18 @@ const HouseholdSettings: React.FC = () => {
     console.log('HouseholdSettings mounted, user:', user?.id, 'household:', household?.id, 'isHead:', isHeadOfHousehold);
     if (household) {
       loadMembers();
+      // Initialize gem prompt with default value if none exists
+      const defaultPrompt = `A chore at home that takes 5-10 min. is 5 Gems, this includes emptying or filling the dishwasher, setting the table, vacuum one room, bringing out the trash or paper collection etc.
+
+A chore at home that takes 10 - 30 min is 10 Gems, this includes cleaning the kitchen, vacuuming the house, walking the dog, helping with recycling, cleaning the cellar, putting together cardboard
+
+A chore at home that takes longer than 30 min (a combination of previous chores) is 15 Gems.
+
+Shopping or doing external activity for the household is 20 Gems, regardless of the time requirement
+
+If something exceed any of these things, then it's 25 Gems.`;
+      
+      setGemPrompt(household.gemPrompt || defaultPrompt);
     } else {
       // If no household, ensure loading is false
       setLoading(false);
@@ -110,6 +125,22 @@ const HouseholdSettings: React.FC = () => {
       alert('Failed to remove member');
     } finally {
       setRemovingMember(null);
+    }
+  };
+
+  const handleSaveGemPrompt = async () => {
+    if (!household || !user || !isHeadOfHousehold) return;
+    
+    try {
+      setSavingPrompt(true);
+      await updateHousehold(household.id, { gemPrompt });
+      await refreshHousehold();
+      alert('Gem calculation prompt saved successfully!');
+    } catch (error) {
+      console.error('Error saving gem prompt:', error);
+      alert('Failed to save gem prompt');
+    } finally {
+      setSavingPrompt(false);
     }
   };
 
@@ -187,6 +218,44 @@ const HouseholdSettings: React.FC = () => {
           <p><strong>Created:</strong> {formatDate(household.createdAt)}</p>
         </div>
       </div>
+
+      {/* LLM Gem Calculation Prompt - Only for Head of Household */}
+      {isHeadOfHousehold && (
+        <div className="mario-card mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Brain size={20} className="text-mario-blue" />
+            <h2 className="text-xl font-bold text-gray-800">AI Gem Calculation</h2>
+          </div>
+          <p className="text-gray-600 mb-4">
+            Configure how the AI determines gem values for tasks. This prompt guides the AI in evaluating task difficulty and time requirements.
+          </p>
+          
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="gemPrompt" className="block text-sm font-bold text-gray-700 mb-2">
+                Gem Calculation Guidelines
+              </label>
+              <textarea
+                id="gemPrompt"
+                value={gemPrompt}
+                onChange={(e) => setGemPrompt(e.target.value)}
+                rows={8}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-mario-blue focus:border-transparent"
+                placeholder="Enter guidelines for how the AI should calculate gem values..."
+              />
+            </div>
+            
+            <button
+              onClick={handleSaveGemPrompt}
+              disabled={savingPrompt}
+              className="mario-button flex items-center gap-2"
+            >
+              <Save size={16} />
+              {savingPrompt ? 'Saving...' : 'Save Prompt'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Invite Link Section - Only for Head of Household */}
       {isHeadOfHousehold && (

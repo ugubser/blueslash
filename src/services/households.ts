@@ -351,3 +351,12 @@ export const getUserHouseholds = async (userId: string): Promise<Household[]> =>
     throw error;
   }
 };
+
+export const updateHousehold = async (householdId: string, updates: Partial<Household>): Promise<void> => {
+  try {
+    await updateDoc(doc(db, 'households', householdId), updates);
+  } catch (error) {
+    console.error('Error updating household:', error);
+    throw error;
+  }
+};

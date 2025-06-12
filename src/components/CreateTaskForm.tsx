@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Coins, Calendar, FileText, Edit, Repeat } from 'lucide-react';
+import { Plus, Coins, Calendar, FileText, Edit, Repeat, Brain, Loader } from 'lucide-react';
 import { createTask, updateTask } from '../services/tasks';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import type { Task, RecurrenceConfig } from '../types';
 
 interface CreateTaskFormProps {
@@ -23,6 +24,8 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
   const [recurrenceType, setRecurrenceType] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [calculatingGems, setCalculatingGems] = useState(false);
+  const [gemCalculationError, setGemCalculationError] = useState<string | null>(null);
 
   const isEditing = !!editTask;
 
@@ -108,6 +111,39 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
     return date.toISOString().split('T')[0];
   };
 
+  const calculateGemsWithAI = async () => {
+    if (!description.trim()) {
+      setGemCalculationError('Please enter a task description first');
+      return;
+    }
+
+    try {
+      setCalculatingGems(true);
+      setGemCalculationError(null);
+      
+      const functions = getFunctions();
+      const calculateTaskGems = httpsCallable(functions, 'calculateTaskGems');
+      
+      const result = await calculateTaskGems({
+        taskDescription: description,
+        gemPrompt: household?.gemPrompt
+      });
+      
+      const data = result.data as { success: boolean; gems?: number; error?: string };
+      
+      if (data.success && data.gems) {
+        setGems(data.gems);
+      } else {
+        throw new Error(data.error || 'Failed to calculate gems');
+      }
+    } catch (error) {
+      console.error('Error calculating gems:', error);
+      setGemCalculationError('Failed to calculate gems. Please try again later.');
+    } finally {
+      setCalculatingGems(false);
+    }
+  };
+
   return (
     <div className="mario-card">
       <form onSubmit={handleSubmit}>
@@ -176,17 +212,40 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
                 <Coins size={16} className="inline mr-1" />
                 Gem Reward
               </label>
-              <select
-                value={gems}
-                onChange={(e) => setGems(Number(e.target.value))}
-                className="mario-input"
-              >
-                <option value={5}>5 gems - Quick task</option>
-                <option value={10}>10 gems - Standard task</option>
-                <option value={15}>15 gems - Detailed task</option>
-                <option value={20}>20 gems - Complex task</option>
-                <option value={25}>25 gems - Major task</option>
-              </select>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <input
+                      type="number"
+                      min="5"
+                      max="25"
+                      value={gems}
+                      onChange={(e) => setGems(Math.max(5, Math.min(25, Number(e.target.value))))}
+                      className="mario-input"
+                      placeholder="Gem value (5-25)"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={calculateGemsWithAI}
+                    disabled={calculatingGems || !description.trim()}
+                    className="mario-button-blue flex items-center gap-2 px-3 py-2 text-sm"
+                  >
+                    {calculatingGems ? (
+                      <Loader size={14} className="animate-spin" />
+                    ) : (
+                      <Brain size={14} />
+                    )}
+                    {calculatingGems ? 'Calculating...' : 'AI Calculate'}
+                  </button>
+                </div>
+                {gemCalculationError && (
+                  <p className="text-red-600 text-xs">{gemCalculationError}</p>
+                )}
+                <p className="text-xs text-gray-500">
+                  Use AI to calculate gem value based on task description, or enter manually (5-25 gems)
+                </p>
+              </div>
             </div>
           </div>
 

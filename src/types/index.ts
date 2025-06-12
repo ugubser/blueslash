@@ -20,6 +20,7 @@ export interface Household {
   headOfHousehold: string;
   members: string[];
   inviteLinks: InviteLink[];
+  gemPrompt?: string;
   createdAt: Date;
 }
 
