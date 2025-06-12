@@ -31,14 +31,10 @@ export const createTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'upda
 
     // Filter out undefined values for Firestore
     const taskForFirestore = Object.fromEntries(
-      Object.entries(task).filter(([_, value]) => value !== undefined)
+      Object.entries(task).filter(([, value]) => value !== undefined)
     );
 
     await setDoc(doc(db, 'tasks', taskId), taskForFirestore);
-
-    if (task.status === 'published') {
-      await awardGemsForTaskCreation(task.creatorId, task.gems);
-    }
 
     return task;
   } catch (error) {
@@ -70,15 +66,12 @@ export const updateTask = async (taskId: string, updates: Partial<Pick<Task, 'ti
 
     // Filter out undefined values for Firestore
     const updateDataForFirestore = Object.fromEntries(
-      Object.entries(updateData).filter(([_, value]) => value !== undefined)
+      Object.entries(updateData).filter(([, value]) => value !== undefined)
     );
 
     await updateDoc(taskRef, updateDataForFirestore);
 
-    // Award gems if task is being published for the first time
-    if (updates.status === 'published' && currentTask.status === 'draft') {
-      await awardGemsForTaskCreation(currentTask.creatorId, updates.gems || currentTask.gems);
-    }
+    // No gem rewards for task creation - gems only awarded when task is verified
   } catch (error) {
     console.error('Error updating task:', error);
     throw error;
@@ -119,6 +112,7 @@ export const updateTaskStatus = async (taskId: string, status: TaskStatus, userI
       };
 
       // Handle unpublish and unclaim operations - remove claimedBy field if needed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const updateDataWithFieldDeletion: any = { ...updateData };
       if (status === 'draft' || status === 'published') {
         // Remove claimedBy field when unpublishing or unclaiming
@@ -127,15 +121,7 @@ export const updateTaskStatus = async (taskId: string, status: TaskStatus, userI
 
       await updateDoc(doc(db, 'tasks', taskId), updateDataWithFieldDeletion);
 
-      // Award gems only when initially publishing (not when republishing)
-      if (status === 'published') {
-        const taskDoc = await getDoc(doc(db, 'tasks', taskId));
-        if (taskDoc.exists()) {
-          const task = taskDoc.data() as Task;
-          // Only award gems if this is the first time publishing (no existing gem transactions)
-          await awardGemsForTaskCreation(task.creatorId, Math.floor(task.gems * 0.1));
-        }
-      }
+      // No gem rewards for task creation - gems only awarded when task is verified
     }
   } catch (error) {
     console.error('Error updating task status:', error);
@@ -306,7 +292,9 @@ const checkVerificationThreshold = async (taskId: string): Promise<void> => {
     const requiredVerifications = Math.ceil(memberCount * 0.5);
     
     const positiveVerifications = task.verifications.filter(v => v.verified).length;
+    const negativeVerifications = task.verifications.filter(v => !v.verified).length;
 
+    // Check if task should be verified (50% or more positive votes)
     if (positiveVerifications >= requiredVerifications && task.status === 'completed') {
       await updateTaskStatus(taskId, 'verified');
       
@@ -314,16 +302,22 @@ const checkVerificationThreshold = async (taskId: string): Promise<void> => {
         await awardGemsForTaskCompletion(task.claimedBy, task.gems);
       }
     }
+    // Check if task should be rejected (50% or more negative votes)
+    else if (negativeVerifications >= requiredVerifications && task.status === 'completed') {
+      // Return task to published status (unclaimed) and clear verification history
+      await updateDoc(doc(db, 'tasks', taskId), {
+        status: 'published',
+        claimedBy: deleteField(),
+        verifications: [], // Clear all verification history for fresh start
+        updatedAt: new Date()
+      });
+    }
   } catch (error) {
     console.error('Error checking verification threshold:', error);
   }
 };
 
-const awardGemsForTaskCreation = async (userId: string, gems: number): Promise<void> => {
-  const creationGems = Math.max(5, Math.floor(gems * 0.1));
-  await updateUserGems(userId, creationGems);
-  await recordGemTransaction(userId, creationGems, 'task_creation', 'Gems awarded for creating a task');
-};
+// Removed task creation gem rewards - gems only awarded when task is verified
 
 const awardGemsForTaskCompletion = async (userId: string, gems: number): Promise<void> => {
   await updateUserGems(userId, gems);

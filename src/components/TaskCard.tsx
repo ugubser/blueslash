@@ -273,12 +273,16 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) =
           </div>
         )}
 
-        {hasVerified && (
-          <div className="flex items-center gap-2 text-sm text-green-600">
-            <CheckCircle size={16} />
-            <span>You verified this task</span>
-          </div>
-        )}
+        {hasVerified && (() => {
+          const userVerification = task.verifications.find(v => v.userId === user.id);
+          const isVerified = userVerification?.verified;
+          return (
+            <div className={`flex items-center gap-2 text-sm ${isVerified ? 'text-green-600' : 'text-red-600'}`}>
+              <CheckCircle size={16} />
+              <span>{isVerified ? 'You verified this task' : 'You rejected this task'}</span>
+            </div>
+          );
+        })()}
 
         {task.status === 'verified' && (
           <div className="flex items-center gap-2 text-sm text-purple-600">
