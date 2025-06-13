@@ -63,12 +63,12 @@ const HouseholdSwitcher: React.FC = () => {
         <>
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 z-10" 
+            className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)}
           />
           
           {/* Dropdown */}
-          <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg border-2 border-gray-200 shadow-lg z-20">
+          <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg border-2 border-gray-200 shadow-xl z-50 max-h-80 overflow-y-auto">
             <div className="p-2">
               <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 px-2">
                 Your Households ({userHouseholds.length})
