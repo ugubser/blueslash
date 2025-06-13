@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Task, TaskStatus } from '../types';
-import { getHouseholdTasks, getUserTasks } from '../services/tasks';
+import { subscribeToHouseholdTasks, subscribeToUserTasks } from '../services/tasks';
 import { useAuth } from './useAuth';
 
 export const useHouseholdTasks = (status?: TaskStatus) => {
@@ -9,31 +9,32 @@ export const useHouseholdTasks = (status?: TaskStatus) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refreshTasks = async () => {
+  useEffect(() => {
     if (!user?.currentHouseholdId) {
       setTasks([]);
       setLoading(false);
       return;
     }
 
-    try {
-      setLoading(true);
-      setError(null);
-      const tasksData = await getHouseholdTasks(user.currentHouseholdId, status);
-      setTasks(tasksData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load tasks');
-      console.error('Error loading household tasks:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setLoading(true);
+    setError(null);
 
-  useEffect(() => {
-    refreshTasks();
-  }, [user, status]);
+    const unsubscribe = subscribeToHouseholdTasks(
+      user.currentHouseholdId,
+      (tasksData) => {
+        setTasks(tasksData);
+        setLoading(false);
+        setError(null);
+      },
+      status
+    );
 
-  return { tasks, loading, error, refreshTasks };
+    return () => {
+      unsubscribe();
+    };
+  }, [user?.currentHouseholdId, status]);
+
+  return { tasks, loading, error };
 };
 
 export const useUserTasks = (status?: TaskStatus) => {
@@ -42,29 +43,30 @@ export const useUserTasks = (status?: TaskStatus) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refreshTasks = async () => {
+  useEffect(() => {
     if (!user) {
       setTasks([]);
       setLoading(false);
       return;
     }
 
-    try {
-      setLoading(true);
-      setError(null);
-      const tasksData = await getUserTasks(user.id, status);
-      setTasks(tasksData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load tasks');
-      console.error('Error loading user tasks:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setLoading(true);
+    setError(null);
 
-  useEffect(() => {
-    refreshTasks();
-  }, [user, status]);
+    const unsubscribe = subscribeToUserTasks(
+      user.id,
+      (tasksData) => {
+        setTasks(tasksData);
+        setLoading(false);
+        setError(null);
+      },
+      status
+    );
 
-  return { tasks, loading, error, refreshTasks };
+    return () => {
+      unsubscribe();
+    };
+  }, [user?.id, status]);
+
+  return { tasks, loading, error };
 };

@@ -5,9 +5,11 @@ import {
   setDoc, 
   updateDoc, 
   getDocs,
+  onSnapshot,
   arrayUnion,
   arrayRemove
 } from 'firebase/firestore';
+import type { Unsubscribe } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Household, InviteLink, InviteToken, User, UserHousehold } from '../types';
 import { v4 as uuidv4 } from 'uuid';
@@ -359,5 +361,61 @@ export const updateHousehold = async (householdId: string, updates: Partial<Hous
   } catch (error) {
     console.error('Error updating household:', error);
     throw error;
+  }
+};
+
+export const subscribeToHousehold = (
+  householdId: string,
+  callback: (household: Household | null) => void
+): Unsubscribe => {
+  try {
+    return onSnapshot(doc(db, 'households', householdId), (snapshot) => {
+      if (snapshot.exists()) {
+        callback(snapshot.data() as Household);
+      } else {
+        callback(null);
+      }
+    }, (error) => {
+      console.error('Error subscribing to household:', error);
+      callback(null);
+    });
+  } catch (error) {
+    console.error('Error setting up household subscription:', error);
+    return () => {}; // Return empty unsubscribe function
+  }
+};
+
+export const subscribeToHouseholdMembers = (
+  householdId: string,
+  callback: (members: User[]) => void
+): Unsubscribe => {
+  try {
+    return onSnapshot(doc(db, 'households', householdId), async (snapshot) => {
+      if (snapshot.exists()) {
+        const household = snapshot.data() as Household;
+        
+        try {
+          const memberPromises = household.members.map(async (memberId) => {
+            const userDoc = await getDoc(doc(db, 'users', memberId));
+            return userDoc.exists() ? userDoc.data() as User : null;
+          });
+
+          const members = await Promise.all(memberPromises);
+          const validMembers = members.filter(member => member !== null) as User[];
+          callback(validMembers);
+        } catch (error) {
+          console.error('Error fetching household members:', error);
+          callback([]);
+        }
+      } else {
+        callback([]);
+      }
+    }, (error) => {
+      console.error('Error subscribing to household members:', error);
+      callback([]);
+    });
+  } catch (error) {
+    console.error('Error setting up household members subscription:', error);
+    return () => {}; // Return empty unsubscribe function
   }
 };

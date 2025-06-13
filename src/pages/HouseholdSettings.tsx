@@ -4,18 +4,14 @@ import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
 import { 
   generateInviteLink, 
-  getHouseholdMembers, 
   removeMemberFromHousehold,
   updateHousehold 
 } from '../services/households';
-import type { User as UserType } from '../types';
 
 const HouseholdSettings: React.FC = () => {
   const { user } = useAuth();
-  const { household, refreshHousehold } = useHousehold();
-  const [members, setMembers] = useState<UserType[]>([]);
+  const { household, members } = useHousehold();
   const [inviteLink, setInviteLink] = useState<string>('');
-  const [loading, setLoading] = useState(false);
   const [generatingLink, setGeneratingLink] = useState(false);
   const [removingMember, setRemovingMember] = useState<string | null>(null);
   const [gemPrompt, setGemPrompt] = useState<string>('');
@@ -24,34 +20,10 @@ const HouseholdSettings: React.FC = () => {
 
   const isHeadOfHousehold = user && household && household.headOfHousehold === user.id;
 
-  const loadMembers = async () => {
-    if (!household) {
-      console.log('No household found, skipping member load');
-      setLoading(false);
-      return;
-    }
-    
-    console.log('Loading members for household:', household.id);
-    
-    try {
-      setLoading(true);
-      const householdMembers = await getHouseholdMembers(household.id);
-      console.log('Loaded members:', householdMembers);
-      setMembers(householdMembers);
-    } catch (error) {
-      console.error('Error loading members:', error);
-      // Set empty array as fallback
-      setMembers([]);
-    } finally {
-      console.log('Setting loading to false');
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     console.log('HouseholdSettings mounted, user:', user?.id, 'household:', household?.id, 'isHead:', isHeadOfHousehold);
     if (household) {
-      loadMembers();
       // Initialize gem prompt with default value if none exists
       const defaultPrompt = `A chore at home that takes 5-10 min. is 5 Gems, this includes emptying or filling the dishwasher, setting the table, vacuum one room, bringing out the trash or paper collection etc.
 
@@ -65,23 +37,9 @@ If something exceed any of these things, then it's 25 Gems.`;
       
       setGemPrompt(household.gemPrompt || defaultPrompt);
       setAllowGemOverride(household.allowGemOverride || false);
-    } else {
-      // If no household, ensure loading is false
-      setLoading(false);
     }
   }, [household]);
 
-  // Safety timeout to prevent infinite loading
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (loading) {
-        console.log('Loading timeout reached, forcing loading to false');
-        setLoading(false);
-      }
-    }, 10000); // 10 second timeout
-
-    return () => clearTimeout(timeout);
-  }, [loading]);
 
   const handleGenerateInviteLink = async () => {
     if (!household || !isHeadOfHousehold || !user) return;
@@ -120,8 +78,6 @@ If something exceed any of these things, then it's 25 Gems.`;
     try {
       setRemovingMember(memberId);
       await removeMemberFromHousehold(household.id, memberId, user.id);
-      await loadMembers();
-      await refreshHousehold();
     } catch (error) {
       console.error('Error removing member:', error);
       alert('Failed to remove member');
@@ -139,7 +95,6 @@ If something exceed any of these things, then it's 25 Gems.`;
         gemPrompt,
         allowGemOverride
       });
-      await refreshHousehold();
       alert('Gem calculation settings saved successfully!');
     } catch (error) {
       console.error('Error saving gem settings:', error);
@@ -149,18 +104,21 @@ If something exceed any of these things, then it's 25 Gems.`;
     }
   };
 
-  console.log('HouseholdSettings render - user:', !!user, 'household:', !!household, 'loading:', loading, 'isHead:', isHeadOfHousehold);
+  console.log('HouseholdSettings render - user:', !!user, 'household:', !!household, 'isHead:', isHeadOfHousehold);
   
   // Add error boundary for date formatting
-  const formatDate = (date: any) => {
+  const formatDate = (date: unknown) => {
     try {
       if (date instanceof Date) {
         return date.toLocaleDateString();
       }
-      if (date && date.toDate) {
-        return date.toDate().toLocaleDateString();
+      if (date && typeof date === 'object' && 'toDate' in date && typeof date.toDate === 'function') {
+        return (date.toDate() as Date).toLocaleDateString();
       }
-      return new Date(date).toLocaleDateString();
+      if (typeof date === 'string' || typeof date === 'number') {
+        return new Date(date).toLocaleDateString();
+      }
+      return 'Unknown date';
     } catch (error) {
       console.error('Date formatting error:', error);
       return 'Unknown date';
@@ -339,12 +297,7 @@ If something exceed any of these things, then it's 25 Gems.`;
           <h2 className="text-xl font-bold text-gray-800">Household Members</h2>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-8">
-            <div className="loading-spinner w-8 h-8" />
-          </div>
-        ) : (
-          <div className="space-y-4">
+        <div className="space-y-4">
             {members.map((member) => (
               <div
                 key={member.id}
@@ -383,8 +336,7 @@ If something exceed any of these things, then it's 25 Gems.`;
                 )}
               </div>
             ))}
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

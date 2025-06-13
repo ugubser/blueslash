@@ -10,7 +10,7 @@ interface TaskCardProps {
   onEditTask?: (task: Task) => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask }) => {
   const { user } = useAuth();
 
   const handleClaimTask = async () => {
@@ -18,12 +18,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) =
     
     try {
       await updateTaskStatus(task.id, 'claimed', user.id);
-      onTaskUpdate?.();
     } catch (error) {
       console.error('Error claiming task:', error);
       if (error instanceof Error && error.message.includes('no longer available')) {
         alert('This task has already been claimed by someone else.');
-        onTaskUpdate?.();
       }
     }
   };
@@ -33,7 +31,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) =
     
     try {
       await updateTaskStatus(task.id, 'completed');
-      onTaskUpdate?.();
     } catch (error) {
       console.error('Error completing task:', error);
     }
@@ -44,7 +41,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) =
     
     try {
       await verifyTask(task.id, user.id, verified);
-      onTaskUpdate?.();
     } catch (error) {
       console.error('Error verifying task:', error);
     }
@@ -55,7 +51,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) =
     
     try {
       await createRecurringTask(task, user.id);
-      onTaskUpdate?.();
       alert('New recurring task created! Check your drafts to customize and publish it.');
     } catch (error) {
       console.error('Error creating recurring task:', error);
@@ -70,7 +65,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) =
     
     try {
       await deleteTask(task.id);
-      onTaskUpdate?.();
     } catch (error) {
       console.error('Error deleting task:', error);
       alert('Failed to delete task');
@@ -82,7 +76,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) =
     
     try {
       await updateTaskStatus(task.id, 'draft');
-      onTaskUpdate?.();
     } catch (error) {
       console.error('Error unpublishing task:', error);
       alert('Failed to unpublish task');
@@ -94,7 +87,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onEditTask }) =
     
     try {
       await updateTaskStatus(task.id, 'published');
-      onTaskUpdate?.();
     } catch (error) {
       console.error('Error unclaiming task:', error);
       alert('Failed to unclaim task');

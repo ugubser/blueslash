@@ -6,7 +6,7 @@ import { useHousehold } from '../hooks/useHousehold';
 
 const HouseholdSetup: React.FC = () => {
   const { user } = useAuth();
-  const { refreshHousehold } = useHousehold();
+  const { } = useHousehold();
   const [householdName, setHouseholdName] = useState('');
   const [inviteLink, setInviteLink] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,7 +22,6 @@ const HouseholdSetup: React.FC = () => {
       const household = await createHousehold(householdName.trim(), user.id);
       const link = await generateInviteLink(household.id, user.id);
       setInviteLink(link);
-      await refreshHousehold();
     } catch (error) {
       console.error('Error creating household:', error);
     } finally {

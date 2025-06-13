@@ -9,7 +9,7 @@ const Invite: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const { user, signIn, refreshUser } = useAuth();
-  const { refreshHousehold } = useHousehold();
+  const { } = useHousehold();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -50,9 +50,8 @@ const Invite: React.FC = () => {
       console.log('handleJoinHousehold: Refreshing auth context');
       await refreshUser();
       
-      // Refresh household data with confirmed user update
-      console.log('handleJoinHousehold: Refreshing household data');
-      await refreshHousehold();
+      // No need to manually refresh household data - real-time listeners handle this
+      console.log('handleJoinHousehold: Real-time listeners will update household data');
       
       // Wait a bit to ensure state updates, then navigate
       setTimeout(() => {
@@ -68,7 +67,7 @@ const Invite: React.FC = () => {
     } finally {
       setProcessing(false);
     }
-  }, [token, user?.id, refreshUser, refreshHousehold, navigate]); // Removed processing and success from dependencies
+  }, [token, user?.id, refreshUser, navigate]); // Removed processing and success from dependencies
 
   const handleSignIn = async () => {
     try {

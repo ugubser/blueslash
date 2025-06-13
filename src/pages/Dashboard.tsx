@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Filter, RefreshCw } from 'lucide-react';
+import { Plus, Filter } from 'lucide-react';
 import TaskCard from '../components/TaskCard';
 import CreateTaskForm from '../components/CreateTaskForm';
 import Leaderboard from '../components/Leaderboard';
@@ -10,13 +10,9 @@ const Dashboard: React.FC = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
-  const { tasks, loading, refreshTasks } = useHouseholdTasks(
+  const { tasks, loading } = useHouseholdTasks(
     statusFilter === 'all' ? undefined : statusFilter
   );
-
-  const handleTaskUpdate = () => {
-    refreshTasks();
-  };
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
@@ -48,15 +44,6 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="flex gap-3">
-              <button
-                onClick={refreshTasks}
-                className="mario-button-blue flex items-center gap-2"
-                disabled={loading}
-              >
-                <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                Refresh
-              </button>
-              
               <button
                 onClick={() => {
                   setShowCreateForm(true);
@@ -102,7 +89,7 @@ const Dashboard: React.FC = () => {
           {(showCreateForm || editingTask) && (
             <div className="mb-6">
               <CreateTaskForm
-                onTaskCreated={handleTaskUpdate}
+                onTaskCreated={handleCloseForm}
                 onClose={handleCloseForm}
                 editTask={editingTask || undefined}
               />
@@ -120,7 +107,7 @@ const Dashboard: React.FC = () => {
                 <TaskCard
                   key={task.id}
                   task={task}
-                  onTaskUpdate={handleTaskUpdate}
+                  onTaskUpdate={() => {}}
                   onEditTask={handleEditTask}
                 />
               ))}

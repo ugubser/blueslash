@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { Household, User } from '../types';
-import { getHousehold, getHouseholdMembers, getUserHouseholds, switchHousehold } from '../services/households';
+import { subscribeToHousehold, subscribeToHouseholdMembers, getUserHouseholds, switchHousehold } from '../services/households';
 import { useAuth } from './useAuth';
 
 interface HouseholdContextType {
@@ -8,7 +8,6 @@ interface HouseholdContextType {
   members: User[];
   userHouseholds: Household[];
   loading: boolean;
-  refreshHousehold: () => Promise<void>;
   switchCurrentHousehold: (householdId: string) => Promise<void>;
 }
 
@@ -21,31 +20,20 @@ export const HouseholdProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [userHouseholds, setUserHouseholds] = useState<Household[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const refreshHousehold = async () => {
-    if (!user?.currentHouseholdId) {
-      setHousehold(null);
-      setMembers([]);
-      setLoading(false);
+  const loadUserHouseholds = useCallback(async () => {
+    if (!user) {
+      setUserHouseholds([]);
       return;
     }
 
     try {
-      setLoading(true);
-      const [householdData, membersData, householdsData] = await Promise.all([
-        getHousehold(user.currentHouseholdId),
-        getHouseholdMembers(user.currentHouseholdId),
-        getUserHouseholds(user.id)
-      ]);
-      
-      setHousehold(householdData);
-      setMembers(membersData);
+      const householdsData = await getUserHouseholds(user.id);
       setUserHouseholds(householdsData);
     } catch (error) {
-      console.error('Error loading household:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error loading user households:', error);
+      setUserHouseholds([]);
     }
-  };
+  }, [user]);
 
   const switchCurrentHousehold = async (householdId: string) => {
     if (!user) return;
@@ -53,7 +41,6 @@ export const HouseholdProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       await switchHousehold(user.id, householdId);
       await refreshUser(); // Refresh user data to get updated currentHouseholdId
-      await refreshHousehold(); // Refresh household data
     } catch (error) {
       console.error('Error switching household:', error);
       throw error;
@@ -61,15 +48,48 @@ export const HouseholdProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   useEffect(() => {
+    if (!user?.currentHouseholdId) {
+      setHousehold(null);
+      setMembers([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    // Subscribe to household data
+    const unsubscribeHousehold = subscribeToHousehold(
+      user.currentHouseholdId,
+      (householdData) => {
+        setHousehold(householdData);
+        setLoading(false);
+      }
+    );
+
+    // Subscribe to household members
+    const unsubscribeMembers = subscribeToHouseholdMembers(
+      user.currentHouseholdId,
+      (membersData) => {
+        setMembers(membersData);
+      }
+    );
+
+    return () => {
+      unsubscribeHousehold();
+      unsubscribeMembers();
+    };
+  }, [user?.currentHouseholdId]);
+
+  useEffect(() => {
     if (user) {
-      refreshHousehold();
+      loadUserHouseholds();
     } else {
       setHousehold(null);
       setMembers([]);
       setUserHouseholds([]);
       setLoading(false);
     }
-  }, [user]);
+  }, [user, loadUserHouseholds]);
 
   return (
     <HouseholdContext.Provider value={{ 
@@ -77,7 +97,6 @@ export const HouseholdProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       members, 
       userHouseholds, 
       loading, 
-      refreshHousehold, 
       switchCurrentHousehold 
     }}>
       {children}

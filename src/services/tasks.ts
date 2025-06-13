@@ -9,11 +9,13 @@ import {
   query, 
   where, 
   getDocs,
+  onSnapshot,
   orderBy,
   addDoc,
   arrayUnion,
   runTransaction
 } from 'firebase/firestore';
+import type { Unsubscribe } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Task, TaskStatus, Verification, GemTransaction } from '../types';
 import { updateUserGems } from './auth';
@@ -349,5 +351,95 @@ const recordGemTransaction = async (
     await addDoc(collection(db, 'gemTransactions'), transaction);
   } catch (error) {
     console.error('Error recording gem transaction:', error);
+  }
+};
+
+export const subscribeToHouseholdTasks = (
+  householdId: string, 
+  callback: (tasks: Task[]) => void,
+  status?: TaskStatus
+): Unsubscribe => {
+  try {
+    let tasksQuery = query(
+      collection(db, 'tasks'),
+      where('householdId', '==', householdId),
+      orderBy('dueDate', 'asc')
+    );
+
+    if (status) {
+      tasksQuery = query(
+        collection(db, 'tasks'),
+        where('householdId', '==', householdId),
+        where('status', '==', status),
+        orderBy('dueDate', 'asc')
+      );
+    }
+
+    return onSnapshot(tasksQuery, (snapshot) => {
+      const tasks = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          dueDate: data.dueDate?.toDate ? data.dueDate.toDate() : new Date(data.dueDate),
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
+          verifications: data.verifications?.map((v: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+            ...v,
+            verifiedAt: v.verifiedAt?.toDate ? v.verifiedAt.toDate() : new Date(v.verifiedAt)
+          })) || []
+        } as Task;
+      });
+      callback(tasks);
+    }, (error) => {
+      console.error('Error subscribing to household tasks:', error);
+    });
+  } catch (error) {
+    console.error('Error setting up household tasks subscription:', error);
+    return () => {}; // Return empty unsubscribe function
+  }
+};
+
+export const subscribeToUserTasks = (
+  userId: string, 
+  callback: (tasks: Task[]) => void,
+  status?: TaskStatus
+): Unsubscribe => {
+  try {
+    let tasksQuery = query(
+      collection(db, 'tasks'),
+      where('claimedBy', '==', userId),
+      orderBy('dueDate', 'asc')
+    );
+
+    if (status) {
+      tasksQuery = query(
+        collection(db, 'tasks'),
+        where('claimedBy', '==', userId),
+        where('status', '==', status),
+        orderBy('dueDate', 'asc')
+      );
+    }
+
+    return onSnapshot(tasksQuery, (snapshot) => {
+      const tasks = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          dueDate: data.dueDate?.toDate ? data.dueDate.toDate() : new Date(data.dueDate),
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
+          verifications: data.verifications?.map((v: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+            ...v,
+            verifiedAt: v.verifiedAt?.toDate ? v.verifiedAt.toDate() : new Date(v.verifiedAt)
+          })) || []
+        } as Task;
+      });
+      callback(tasks);
+    }, (error) => {
+      console.error('Error subscribing to user tasks:', error);
+    });
+  } catch (error) {
+    console.error('Error setting up user tasks subscription:', error);
+    return () => {}; // Return empty unsubscribe function
   }
 };
