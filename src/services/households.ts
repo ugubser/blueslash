@@ -390,30 +390,68 @@ export const subscribeToHouseholdMembers = (
   callback: (members: User[]) => void
 ): Unsubscribe => {
   try {
-    return onSnapshot(doc(db, 'households', householdId), async (snapshot) => {
+    let userUnsubscribes: Unsubscribe[] = [];
+    let currentMembers: User[] = [];
+    
+    // Subscribe to household document to get member list changes
+    const householdUnsubscribe = onSnapshot(doc(db, 'households', householdId), (snapshot) => {
       if (snapshot.exists()) {
         const household = snapshot.data() as Household;
         
-        try {
-          const memberPromises = household.members.map(async (memberId) => {
-            const userDoc = await getDoc(doc(db, 'users', memberId));
-            return userDoc.exists() ? userDoc.data() as User : null;
+        // Clean up existing user subscriptions
+        userUnsubscribes.forEach(unsubscribe => unsubscribe());
+        userUnsubscribes = [];
+        currentMembers = [];
+        
+        // Create individual subscriptions for each user
+        household.members.forEach(memberId => {
+          const userUnsubscribe = onSnapshot(doc(db, 'users', memberId), (userSnapshot) => {
+            if (userSnapshot.exists()) {
+              const userData = userSnapshot.data() as User;
+              
+              // Update the member in our current list
+              const existingIndex = currentMembers.findIndex(m => m.id === memberId);
+              if (existingIndex >= 0) {
+                currentMembers[existingIndex] = userData;
+              } else {
+                currentMembers.push(userData);
+              }
+              
+              // Call callback with updated members list
+              callback([...currentMembers]);
+            } else {
+              // Remove member if user document doesn't exist
+              currentMembers = currentMembers.filter(m => m.id !== memberId);
+              callback([...currentMembers]);
+            }
+          }, (error) => {
+            console.error(`Error subscribing to user ${memberId}:`, error);
           });
-
-          const members = await Promise.all(memberPromises);
-          const validMembers = members.filter(member => member !== null) as User[];
-          callback(validMembers);
-        } catch (error) {
-          console.error('Error fetching household members:', error);
+          
+          userUnsubscribes.push(userUnsubscribe);
+        });
+        
+        // If no members, call callback with empty array
+        if (household.members.length === 0) {
           callback([]);
         }
       } else {
+        // Clean up user subscriptions and call callback with empty array
+        userUnsubscribes.forEach(unsubscribe => unsubscribe());
+        userUnsubscribes = [];
+        currentMembers = [];
         callback([]);
       }
     }, (error) => {
-      console.error('Error subscribing to household members:', error);
+      console.error('Error subscribing to household:', error);
       callback([]);
     });
+
+    // Return cleanup function that unsubscribes from everything
+    return () => {
+      householdUnsubscribe();
+      userUnsubscribes.forEach(unsubscribe => unsubscribe());
+    };
   } catch (error) {
     console.error('Error setting up household members subscription:', error);
     return () => {}; // Return empty unsubscribe function

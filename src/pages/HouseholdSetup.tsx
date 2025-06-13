@@ -6,6 +6,7 @@ import { useHousehold } from '../hooks/useHousehold';
 
 const HouseholdSetup: React.FC = () => {
   const { user } = useAuth();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { } = useHousehold();
   const [householdName, setHouseholdName] = useState('');
   const [inviteLink, setInviteLink] = useState('');

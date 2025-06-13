@@ -5,7 +5,8 @@ import {
   onAuthStateChanged,
   type User as FirebaseUser
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
+import type { Unsubscribe } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import type { User } from '../types';
 
@@ -127,6 +128,42 @@ export const updateUserGems = async (userId: string, gemsToAdd: number): Promise
     console.error('Error updating user gems:', error);
     throw error;
   }
+};
+
+export const onAuthStateChangeRealtime = (callback: (user: User | null) => void): Unsubscribe => {
+  let userUnsubscribe: Unsubscribe | null = null;
+  
+  const authUnsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+    // Clean up previous user subscription
+    if (userUnsubscribe) {
+      userUnsubscribe();
+      userUnsubscribe = null;
+    }
+    
+    if (firebaseUser) {
+      // Subscribe to real-time user document updates
+      userUnsubscribe = onSnapshot(doc(db, 'users', firebaseUser.uid), (userDoc) => {
+        if (userDoc.exists()) {
+          callback(userDoc.data() as User);
+        } else {
+          callback(null);
+        }
+      }, (error) => {
+        console.error('Error subscribing to user document:', error);
+        callback(null);
+      });
+    } else {
+      callback(null);
+    }
+  });
+  
+  // Return cleanup function that unsubscribes from both auth and user document
+  return () => {
+    authUnsubscribe();
+    if (userUnsubscribe) {
+      userUnsubscribe();
+    }
+  };
 };
 
 export const getCurrentUser = async (userId: string): Promise<User | null> => {

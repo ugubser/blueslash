@@ -9,6 +9,7 @@ const Invite: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const { user, signIn, refreshUser } = useAuth();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { } = useHousehold();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
