@@ -30,8 +30,9 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
 
   const isEditing = !!editTask;
   
-  // Determine if gem editing should be disabled
+  // Determine if gem editing should be disabled or hidden
   const isGemEditingDisabled = !isEditing && hasUsedAI && household?.allowGemOverride === false;
+  const shouldHideGemInput = household?.allowGemOverride === false;
 
   // Populate form when editing
   useEffect(() => {
@@ -61,6 +62,35 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
     try {
       setLoading(true);
       
+      let finalGems = gems;
+      
+      // Auto-calculate gems if publishing and overrides are not allowed
+      if (!isDraft && household?.allowGemOverride === false && description.trim() && 
+          (!isEditing || (isEditing && editTask?.status === 'draft'))) {
+        try {
+          setCalculatingGems(true);
+          const functions = getFunctions();
+          const calculateTaskGems = httpsCallable(functions, 'calculateTaskGems');
+          
+          const result = await calculateTaskGems({
+            taskDescription: description,
+            gemPrompt: household?.gemPrompt
+          });
+          
+          const data = result.data as { success: boolean; gems?: number; error?: string };
+          
+          if (data.success && data.gems) {
+            finalGems = data.gems;
+            setGems(data.gems);
+          }
+        } catch (error) {
+          console.error('Error auto-calculating gems:', error);
+          // Continue with original gem value if calculation fails
+        } finally {
+          setCalculatingGems(false);
+        }
+      }
+      
       const recurrence: RecurrenceConfig | undefined = isRecurring ? {
         type: recurrenceType,
         interval: recurrenceInterval
@@ -73,7 +103,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
           description: description.trim(),
           status: isDraft ? 'draft' : 'published',
           dueDate: new Date(dueDate || Date.now() + 3 * 24 * 60 * 60 * 1000),
-          gems,
+          gems: finalGems,
           recurrence
         });
       } else {
@@ -85,7 +115,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
           description: description.trim(),
           status: isDraft ? 'draft' : 'published',
           dueDate: new Date(dueDate || Date.now() + 3 * 24 * 60 * 60 * 1000),
-          gems,
+          gems: finalGems,
           recurrence,
           verifications: []
         });
@@ -222,40 +252,61 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
                 Gem Reward
               </label>
               <div className="space-y-2">
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <input
-                      type="number"
-                      min="5"
-                      max="25"
-                      value={gems}
-                      onChange={(e) => setGems(Math.max(5, Math.min(25, Number(e.target.value))))}
-                      disabled={isGemEditingDisabled}
-                      className={`mario-input ${isGemEditingDisabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                      placeholder="Gem value (5-25)"
-                    />
+                {shouldHideGemInput ? (
+                  // Show only gem display when overrides are disabled
+                  <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border-2 border-gray-200">
+                    <Coins size={16} className="text-mario-blue" />
+                    <span className="font-bold text-lg">{gems} gems</span>
+                    <span className="text-xs text-gray-500 ml-2">
+                      {isEditing && editTask?.status !== 'draft' 
+                        ? "(AI calculated)" 
+                        : "(AI calculated when published)"
+                      }
+                    </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={calculateGemsWithAI}
-                    disabled={calculatingGems || !description.trim()}
-                    className="mario-button-blue flex items-center gap-2 px-3 py-2 text-sm"
-                  >
-                    {calculatingGems ? (
-                      <Loader size={14} className="animate-spin" />
-                    ) : (
-                      <Brain size={14} />
-                    )}
-                    {calculatingGems ? 'Calculating...' : 'AI Calculate'}
-                  </button>
-                </div>
+                ) : (
+                  // Show input and button when overrides are allowed or when editing
+                  <>
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <input
+                          type="number"
+                          min="5"
+                          max="25"
+                          value={gems}
+                          onChange={(e) => setGems(Math.max(5, Math.min(25, Number(e.target.value))))}
+                          disabled={isGemEditingDisabled}
+                          className={`mario-input ${isGemEditingDisabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                          placeholder="Gem value (5-25)"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={calculateGemsWithAI}
+                        disabled={calculatingGems || !description.trim()}
+                        className="mario-button-blue flex items-center gap-2 px-3 py-2 text-sm"
+                      >
+                        {calculatingGems ? (
+                          <Loader size={14} className="animate-spin" />
+                        ) : (
+                          <Brain size={14} />
+                        )}
+                        {calculatingGems ? 'Calculating...' : 'AI Calculate'}
+                      </button>
+                    </div>
+                  </>
+                )}
+                
                 {gemCalculationError && (
                   <p className="text-red-600 text-xs">{gemCalculationError}</p>
                 )}
+                
                 <p className="text-xs text-gray-500">
-                  {isGemEditingDisabled 
-                    ? "Gem value set by AI and cannot be modified (household setting)"
-                    : "Use AI to calculate gem value based on task description, or enter manually (5-25 gems)"
+                  {shouldHideGemInput 
+                    ? "Gem values are automatically calculated by AI when tasks are published (household setting)."
+                    : isGemEditingDisabled 
+                      ? "Gem value set by AI and cannot be modified (household setting)"
+                      : "Use AI to calculate gem value based on task description, or enter manually (5-25 gems)"
                   }
                 </p>
               </div>

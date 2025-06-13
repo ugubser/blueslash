@@ -21,6 +21,7 @@ export const createHousehold = async (name: string, headOfHouseholdId: string): 
       headOfHousehold: headOfHouseholdId,
       members: [headOfHouseholdId],
       inviteLinks: [],
+      allowGemOverride: false,
       createdAt: new Date()
     };
 
