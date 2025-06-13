@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { LogIn, Home, Coins, CheckCircle } from 'lucide-react';
+import { LogIn, Home, Coins, CheckCircle, ExternalLink } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import TermsModal from '../components/TermsModal';
 
 const Login: React.FC = () => {
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   const handleSignIn = async () => {
     try {
@@ -79,7 +81,14 @@ const Login: React.FC = () => {
           </button>
 
           <p className="text-xs text-gray-500 mt-4 font-normal">
-            By signing in, you agree to our terms of service and privacy policy.
+            By signing in, you agree to our{' '}
+            <button
+              onClick={() => setShowTerms(true)}
+              className="text-mario-blue hover:text-mario-blue-dark underline focus:outline-none"
+            >
+              terms of service and privacy policy
+            </button>
+            .
           </p>
         </div>
 
@@ -91,7 +100,27 @@ const Login: React.FC = () => {
             <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>🏆</span>
           </div>
         </div>
+
+        {/* Footer */}
+        <div className="mt-8 pt-6 border-t border-gray-200 text-center">
+          <p className="text-sm text-gray-600 font-normal mb-2">
+            Made in Switzerland 🇨🇭
+          </p>
+          <a
+            href="https://github.com/ugubser/blueslash"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sm text-mario-blue hover:text-mario-blue-dark transition-colors underline"
+          >
+            Learn more <ExternalLink size={14} />
+          </a>
+        </div>
       </div>
+
+      <TermsModal 
+        isOpen={showTerms} 
+        onClose={() => setShowTerms(false)} 
+      />
     </div>
   );
 };
