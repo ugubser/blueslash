@@ -102,7 +102,7 @@ const Login: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 pt-6 border-t border-gray-200 text-center">
+        <div className="mt-8 mario-card text-center">
           <p className="text-sm text-gray-600 font-normal mb-2">
             Made in Switzerland 🇨🇭
           </p>
