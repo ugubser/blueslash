@@ -7,6 +7,7 @@ import {
   removeMemberFromHousehold,
   updateHousehold 
 } from '../services/households';
+import NotificationPermission from '../components/NotificationPermission';
 
 const HouseholdSettings: React.FC = () => {
   const { user } = useAuth();
@@ -336,6 +337,58 @@ If something exceed any of these things, then it's 25 Gems.`;
                 )}
               </div>
             ))}
+        </div>
+      </div>
+
+      {/* Notification Settings Section */}
+      <div className="mario-card mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <User size={20} className="text-mario-blue" />
+          <h2 className="text-xl font-bold text-mario-blue">Notification Settings</h2>
+        </div>
+        
+        <NotificationPermission 
+          onPermissionChange={(granted) => {
+            console.log('Notification permission changed:', granted);
+          }}
+        />
+        
+        {/* Test Notification Button */}
+        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+          <h3 className="font-semibold text-gray-800 mb-2">Test Notifications</h3>
+          <button
+            onClick={async () => {
+              console.log('Test notification button clicked');
+              console.log('Notification.permission:', Notification.permission);
+              
+              // Test local notification
+              if (Notification.permission === 'granted') {
+                console.log('Creating notification...');
+                const notification = new Notification('Test Notification', {
+                  body: 'This is a test notification from BlueSlash!',
+                  icon: '/icons/icon-192x192.png',
+                  tag: 'test-notification'
+                });
+                
+                notification.onclick = () => {
+                  console.log('Notification clicked!');
+                  notification.close();
+                };
+                
+                notification.onerror = (error) => {
+                  console.error('Notification error:', error);
+                };
+                
+                console.log('Notification created:', notification);
+              } else {
+                console.log('Notification permission not granted:', Notification.permission);
+                alert(`Notification permission: ${Notification.permission}. Please enable notifications first.`);
+              }
+            }}
+            className="mario-button mario-button-blue text-sm"
+          >
+            Send Test Notification
+          </button>
         </div>
       </div>
     </div>

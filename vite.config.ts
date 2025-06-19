@@ -17,7 +17,8 @@ export default defineConfig(({ mode }) => ({
           /^\/__\/auth\/.*/,
           /^\/auth\/.*/,
           /firebaseapp\.com/,
-          /googleapis\.com\/identitytoolkit/
+          /googleapis\.com\/identitytoolkit/,
+          /gstatic\.com\/firebasejs/
         ],
         runtimeCaching: [
           {

@@ -9,6 +9,11 @@
 
 import {onCall} from "firebase-functions/v2/https";
 import {calculateGemsWithLLM} from "./llm-parser";
+import {
+  scheduleTaskReminders,
+  sendScheduledNotifications,
+  sendTestNotification
+} from "./notifications";
 
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
@@ -42,3 +47,10 @@ export const calculateTaskGems = onCall({
     };
   }
 });
+
+// Export notification functions
+export {
+  scheduleTaskReminders,
+  sendScheduledNotifications,
+  sendTestNotification
+};

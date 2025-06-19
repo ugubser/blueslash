@@ -3,6 +3,7 @@ import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 import { getStorage } from 'firebase/storage';
+import { getMessaging, isSupported } from 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -19,6 +20,17 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const functions = getFunctions(app);
 export const storage = getStorage(app);
+
+// Initialize messaging only if supported
+export let messaging: ReturnType<typeof getMessaging> | null = null;
+
+export const initializeMessaging = async () => {
+  if (typeof window !== 'undefined' && await isSupported()) {
+    messaging = getMessaging(app);
+    return messaging;
+  }
+  return null;
+};
 
 // Connect to emulators based on build mode
 // - 'emulator' mode: Always use emulators (for testing)

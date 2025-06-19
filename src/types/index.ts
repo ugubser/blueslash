@@ -11,6 +11,9 @@ export interface User {
   households: UserHousehold[];
   currentHouseholdId?: string;
   gems: number;
+  notificationPreferences?: NotificationPreferences;
+  notificationToken?: string;
+  notificationTokenUpdatedAt?: Date;
   createdAt: Date;
 }
 

@@ -41,6 +41,12 @@ export const signInWithGoogle = async (): Promise<User | null> => {
         displayName: firebaseUser.displayName || '',
         households: [],
         gems: 0,
+        notificationPreferences: {
+          email: false,
+          push: false,
+          taskReminders: true,
+          verificationRequests: true
+        },
         createdAt: new Date()
       };
       
