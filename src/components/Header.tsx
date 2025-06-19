@@ -16,8 +16,6 @@ const Header: React.FC = () => {
     return userHousehold?.role || 'member';
   };
 
-  const isHeadOfHousehold = user && household && household.headOfHousehold === user.id;
-
   return (
     <header className="bg-white border-b-4 border-mario-blue shadow-lg">
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
@@ -41,19 +39,17 @@ const Header: React.FC = () => {
             >
               Dashboard
             </Link>
-            {isHeadOfHousehold && (
-              <Link
-                to="/household-settings"
-                className={`px-3 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 ${
-                  location.pathname === '/household-settings' 
-                    ? 'bg-mario-blue text-white' 
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <Settings size={14} />
-                Settings
-              </Link>
-            )}
+            <Link
+              to="/household-settings"
+              className={`px-3 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 ${
+                location.pathname === '/household-settings' 
+                  ? 'bg-mario-blue text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Settings size={14} />
+              Settings
+            </Link>
           </nav>
 
           {user && (
@@ -97,18 +93,16 @@ const Header: React.FC = () => {
                   <span>{user.gems.toLocaleString()}</span>
                 </div>
                 
-                {isHeadOfHousehold && (
-                  <Link
-                    to="/household-settings"
-                    className={`p-2 rounded-lg transition-colors ${
-                      location.pathname === '/household-settings' 
-                        ? 'bg-mario-blue text-white' 
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <Settings size={18} />
-                  </Link>
-                )}
+                <Link
+                  to="/household-settings"
+                  className={`p-2 rounded-lg transition-colors ${
+                    location.pathname === '/household-settings' 
+                      ? 'bg-mario-blue text-white' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Settings size={18} />
+                </Link>
                 
                 <button
                   onClick={signOut}

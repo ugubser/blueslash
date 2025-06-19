@@ -147,17 +147,6 @@ If something exceed any of these things, then it's 25 Gems.`;
     );
   }
 
-  if (!isHeadOfHousehold) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mario-card text-center py-12">
-          <p className="text-red-600">Only the head of household can access these settings.</p>
-          <p className="text-gray-600 mt-2">Current head: {household?.headOfHousehold || 'Unknown'}</p>
-          <p className="text-gray-600">Your ID: {user?.id || 'Unknown'}</p>
-        </div>
-      </div>
-    );
-  }
 
   // Wrap the main content in a try-catch to prevent crashes
   try {
@@ -166,10 +155,13 @@ If something exceed any of these things, then it's 25 Gems.`;
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Household Settings
+          {isHeadOfHousehold ? 'Household Settings' : 'Household Info & Settings'}
         </h1>
         <p className="text-gray-600 font-normal">
-          Manage your household members and invite new people to join.
+          {isHeadOfHousehold 
+            ? 'Manage your household members and invite new people to join.'
+            : 'View household information and manage your personal settings.'
+          }
         </p>
       </div>
 
