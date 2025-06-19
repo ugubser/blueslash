@@ -115,6 +115,7 @@ export const scheduleTaskReminders = onDocumentUpdated('tasks/{taskId}', async (
     const now = new Date();
     
     console.log(`Task ${taskId} was claimed by ${after.claimedBy}, scheduling reminders`);
+    console.log(`Due date: ${dueDate}, Current time: ${now}`);
     
     // Calculate reminder dates: 7 days, 4 days, 2 days, 1 day before due date
     const reminderDays = [7, 4, 2, 1];
@@ -124,8 +125,11 @@ export const scheduleTaskReminders = onDocumentUpdated('tasks/{taskId}', async (
       const reminderDate = new Date(dueDate);
       reminderDate.setDate(reminderDate.getDate() - days);
       
+      console.log(`Checking reminder ${days} days before: ${reminderDate} (now: ${now})`);
+      
       // Only schedule if reminder date is in the future
       if (reminderDate > now) {
+        console.log(`✅ Scheduling reminder for ${days} days before due date`);
         reminders.push({
           taskId,
           userId: after.claimedBy,
@@ -134,6 +138,8 @@ export const scheduleTaskReminders = onDocumentUpdated('tasks/{taskId}', async (
           taskTitle: after.title,
           householdId: after.householdId
         });
+      } else {
+        console.log(`❌ Skipping reminder for ${days} days before (date has passed)`);
       }
     }
     

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Link, Trash2, Copy, Plus, Crown, User, Brain, Save } from 'lucide-react';
+import { httpsCallable } from 'firebase/functions';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
 import { 
@@ -7,6 +8,7 @@ import {
   removeMemberFromHousehold,
   updateHousehold 
 } from '../services/households';
+import { functions } from '../services/firebase';
 import NotificationPermission from '../components/NotificationPermission';
 
 const HouseholdSettings: React.FC = () => {
@@ -387,22 +389,12 @@ If something exceed any of these things, then it's 25 Gems.`;
               onClick={async () => {
                 console.log('Triggering scheduled notifications check...');
                 try {
-                  // Call the Firebase Function to check for scheduled notifications
-                  const response = await fetch(`http://127.0.0.1:5001/blueslash-7bcdd/us-central1/sendScheduledNotifications`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    }
-                  });
+                  // Call the Firebase Function using the SDK
+                  const sendScheduledNotifications = httpsCallable(functions, 'sendScheduledNotifications');
+                  const result = await sendScheduledNotifications();
                   
-                  if (response.ok) {
-                    const result = await response.text();
-                    console.log('Scheduled notifications result:', result);
-                    alert('Scheduled notifications check triggered! Check console for results.');
-                  } else {
-                    console.error('Failed to trigger scheduled notifications:', response.statusText);
-                    alert('Failed to trigger scheduled notifications. Check console for details.');
-                  }
+                  console.log('Scheduled notifications result:', result.data);
+                  alert('Scheduled notifications check triggered! Check console and Firebase logs for results.');
                 } catch (error) {
                   console.error('Error triggering scheduled notifications:', error);
                   alert('Error triggering scheduled notifications. Check console for details.');
