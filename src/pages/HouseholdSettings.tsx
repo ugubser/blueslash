@@ -348,39 +348,71 @@ If something exceed any of these things, then it's 25 Gems.`;
         {/* Test Notification Button */}
         <div className="mt-4 p-4 bg-gray-50 rounded-lg">
           <h3 className="font-semibold text-gray-800 mb-2">Test Notifications</h3>
-          <button
-            onClick={async () => {
-              console.log('Test notification button clicked');
-              console.log('Notification.permission:', Notification.permission);
-              
-              // Test local notification
-              if (Notification.permission === 'granted') {
-                console.log('Creating notification...');
-                const notification = new Notification('Test Notification', {
-                  body: 'This is a test notification from BlueSlash!',
-                  icon: '/icons/icon-192x192.png',
-                  tag: 'test-notification'
-                });
+          <div className="space-y-2">
+            <button
+              onClick={async () => {
+                console.log('Test notification button clicked');
+                console.log('Notification.permission:', Notification.permission);
                 
-                notification.onclick = () => {
-                  console.log('Notification clicked!');
-                  notification.close();
-                };
-                
-                notification.onerror = (error) => {
-                  console.error('Notification error:', error);
-                };
-                
-                console.log('Notification created:', notification);
-              } else {
-                console.log('Notification permission not granted:', Notification.permission);
-                alert(`Notification permission: ${Notification.permission}. Please enable notifications first.`);
-              }
-            }}
-            className="mario-button mario-button-blue text-sm"
-          >
-            Send Test Notification
-          </button>
+                // Test local notification
+                if (Notification.permission === 'granted') {
+                  console.log('Creating notification...');
+                  const notification = new Notification('Test Notification', {
+                    body: 'This is a test notification from BlueSlash!',
+                    icon: '/icons/icon-192x192.png',
+                    tag: 'test-notification'
+                  });
+                  
+                  notification.onclick = () => {
+                    console.log('Notification clicked!');
+                    notification.close();
+                  };
+                  
+                  notification.onerror = (error) => {
+                    console.error('Notification error:', error);
+                  };
+                  
+                  console.log('Notification created:', notification);
+                } else {
+                  console.log('Notification permission not granted:', Notification.permission);
+                  alert(`Notification permission: ${Notification.permission}. Please enable notifications first.`);
+                }
+              }}
+              className="mario-button mario-button-blue text-sm mr-2"
+            >
+              Local Test Notification
+            </button>
+            
+            <button
+              onClick={async () => {
+                console.log('Triggering scheduled notifications check...');
+                try {
+                  // Call the Firebase Function to check for scheduled notifications
+                  const response = await fetch(`http://127.0.0.1:5001/blueslash-7bcdd/us-central1/sendScheduledNotifications`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    }
+                  });
+                  
+                  if (response.ok) {
+                    const result = await response.text();
+                    console.log('Scheduled notifications result:', result);
+                    alert('Scheduled notifications check triggered! Check console for results.');
+                  } else {
+                    console.error('Failed to trigger scheduled notifications:', response.statusText);
+                    alert('Failed to trigger scheduled notifications. Check console for details.');
+                  }
+                } catch (error) {
+                  console.error('Error triggering scheduled notifications:', error);
+                  alert('Error triggering scheduled notifications. Check console for details.');
+                }
+              }}
+              className="mario-button mario-button-red text-sm"
+            >
+              Trigger Scheduled Check
+            </button>
+          </div>
         </div>
       </div>
     </div>
