@@ -1,0 +1,114 @@
+// Firebase messaging service worker
+importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js');
+
+// Replace these placeholders with your actual Firebase config
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+// Initialize Firebase immediately
+firebase.initializeApp(firebaseConfig);
+const messaging = firebase.messaging();
+
+console.log('[firebase-messaging-sw.js] Firebase initialized with config');
+
+// Handle background messages
+messaging.onBackgroundMessage((payload) => {
+  console.log('[firebase-messaging-sw.js] Received background message ', payload);
+  
+  const notificationTitle = payload.notification?.title || 'Task Reminder';
+  const notificationOptions = {
+    body: payload.notification?.body || 'You have a task due soon!',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/badge-72x72.png',
+    data: payload.data,
+    actions: [
+      {
+        action: 'view',
+        title: 'View Task'
+      },
+      {
+        action: 'dismiss',
+        title: 'Dismiss'
+      }
+    ],
+    requireInteraction: true,
+    tag: 'task-reminder'
+  };
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// Handle notification clicks
+self.addEventListener('notificationclick', (event) => {
+  console.log('[firebase-messaging-sw.js] Notification click received.');
+
+  event.notification.close();
+
+  if (event.action === 'view') {
+    // Open the app and navigate to the task
+    const taskId = event.notification.data?.taskId;
+    const url = taskId ? `/?taskId=${taskId}` : '/';
+    
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+        // Check if app is already open
+        for (const client of clientList) {
+          if (client.url.includes(url) && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        // Open new window if app is not open
+        if (clients.openWindow) {
+          return clients.openWindow(url);
+        }
+      })
+    );
+  } else if (event.action === 'dismiss') {
+    // Just close the notification (already done above)
+    console.log('[firebase-messaging-sw.js] Notification dismissed.');
+  }
+});
+
+// Handle push events for custom notifications
+self.addEventListener('push', (event) => {
+  console.log('[firebase-messaging-sw.js] Push received.');
+  
+  if (event.data) {
+    const data = event.data.json();
+    console.log('[firebase-messaging-sw.js] Push data:', data);
+    
+    // If this is a custom notification (not from Firebase)
+    if (data.type === 'task-reminder') {
+      const notificationTitle = data.title || 'Task Reminder';
+      const notificationOptions = {
+        body: data.body || 'You have a task due soon!',
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/badge-72x72.png',
+        data: data,
+        actions: [
+          {
+            action: 'view',
+            title: 'View Task'
+          },
+          {
+            action: 'dismiss', 
+            title: 'Dismiss'
+          }
+        ],
+        requireInteraction: true,
+        tag: 'task-reminder'
+      };
+
+      event.waitUntil(
+        self.registration.showNotification(notificationTitle, notificationOptions)
+      );
+    }
+  }
+});

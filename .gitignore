@@ -23,6 +23,7 @@ dist-ssr
 .firebase
 firebase-debug.log
 firestore-debug.log
+public/firebase-messaging-sw.js
 
 # Editor directories and files
 .vscode/*
