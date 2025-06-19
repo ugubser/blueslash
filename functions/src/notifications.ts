@@ -153,7 +153,7 @@ export const scheduleTaskReminders = onDocumentUpdated('tasks/{taskId}', async (
         type: 'task-reminder',
         scheduled: true,
         sent: false,
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
+        createdAt: new Date()
       });
     }
     
@@ -178,7 +178,7 @@ export const scheduleTaskReminders = onDocumentUpdated('tasks/{taskId}', async (
       batch.update(doc.ref, { 
         scheduled: false, 
         cancelled: true,
-        cancelledAt: admin.firestore.FieldValue.serverTimestamp()
+        cancelledAt: new Date()
       });
     });
     
@@ -187,23 +187,46 @@ export const scheduleTaskReminders = onDocumentUpdated('tasks/{taskId}', async (
   }
 });
 
-// Daily function to send scheduled notifications
-export const sendScheduledNotifications = onSchedule('every 1 hours', async (event) => {
+// Shared notification checking logic
+async function checkAndSendScheduledNotifications() {
   console.log('Checking for scheduled notifications to send...');
   
   const now = new Date();
-  const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
+  const checkWindow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // Look 7 days ahead for testing
   
-  // Find notifications scheduled to be sent within the next hour
+  console.log(`Checking for notifications between now (${now}) and ${checkWindow}`);
+  
+  // Find notifications scheduled to be sent within the check window
   const notificationsQuery = admin.firestore()
     .collection('scheduledNotifications')
     .where('scheduled', '==', true)
     .where('sent', '==', false)
-    .where('reminderDate', '<=', oneHourFromNow);
+    .where('reminderDate', '<=', checkWindow);
   
   const notifications = await notificationsQuery.get();
   
-  console.log(`Found ${notifications.size} notifications to process`);
+  // Debug: Let's also check all scheduled notifications regardless of date
+  const allScheduledQuery = admin.firestore()
+    .collection('scheduledNotifications')
+    .where('scheduled', '==', true)
+    .where('sent', '==', false);
+  
+  const allScheduled = await allScheduledQuery.get();
+  console.log(`Total scheduled notifications in database: ${allScheduled.size}`);
+  
+  if (allScheduled.size > 0) {
+    allScheduled.docs.forEach((doc, index) => {
+      const data = doc.data();
+      console.log(`Scheduled notification ${index + 1}:`, {
+        taskTitle: data.taskTitle,
+        reminderDate: data.reminderDate,
+        daysUntilDue: data.daysUntilDue,
+        userId: data.userId
+      });
+    });
+  }
+  
+  console.log(`Found ${notifications.size} notifications to process in time window`);
   
   const batch = admin.firestore().batch();
   const sendPromises: Promise<boolean>[] = [];
@@ -237,7 +260,7 @@ export const sendScheduledNotifications = onSchedule('every 1 hours', async (eve
     // Mark as sent
     batch.update(doc.ref, {
       sent: true,
-      sentAt: admin.firestore.FieldValue.serverTimestamp()
+      sentAt: new Date()
     });
   }
   
@@ -249,6 +272,19 @@ export const sendScheduledNotifications = onSchedule('every 1 hours', async (eve
   const failureCount = results.length - successCount;
   
   console.log(`Notifications sent: ${successCount} successful, ${failureCount} failed`);
+  
+  return { sent: successCount, failed: failureCount };
+}
+
+// Scheduled function (runs automatically every hour)
+export const sendScheduledNotifications = onSchedule('every 1 hours', async (event) => {
+  await checkAndSendScheduledNotifications();
+});
+
+// Manual callable function (for testing)
+export const triggerScheduledNotifications = onCall(async (request) => {
+  console.log('Manual trigger of scheduled notifications check');
+  return await checkAndSendScheduledNotifications();
 });
 
 // Manual function to send immediate notification (for testing)

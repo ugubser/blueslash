@@ -390,8 +390,8 @@ If something exceed any of these things, then it's 25 Gems.`;
                 console.log('Triggering scheduled notifications check...');
                 try {
                   // Call the Firebase Function using the SDK
-                  const sendScheduledNotifications = httpsCallable(functions, 'sendScheduledNotifications');
-                  const result = await sendScheduledNotifications();
+                  const triggerScheduledNotifications = httpsCallable(functions, 'triggerScheduledNotifications');
+                  const result = await triggerScheduledNotifications();
                   
                   console.log('Scheduled notifications result:', result.data);
                   alert('Scheduled notifications check triggered! Check console and Firebase logs for results.');

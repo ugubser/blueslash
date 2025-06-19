@@ -12,6 +12,7 @@ import {calculateGemsWithLLM} from "./llm-parser";
 import {
   scheduleTaskReminders,
   sendScheduledNotifications,
+  triggerScheduledNotifications,
   sendTestNotification
 } from "./notifications";
 
@@ -52,5 +53,6 @@ export const calculateTaskGems = onCall({
 export {
   scheduleTaskReminders,
   sendScheduledNotifications,
+  triggerScheduledNotifications,
   sendTestNotification
 };

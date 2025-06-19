@@ -22,17 +22,22 @@ Edit `public/firebase-messaging-sw.js` and replace these placeholders with your 
 - `YOUR_MESSAGING_SENDER_ID` → Your messaging sender ID
 - `YOUR_APP_ID` → Your app ID
 
-### 3. **Add VAPID Key to Environment**
-Add this to your `.env` file:
+### 3. **Generate VAPID Keys**
+Generate new VAPID keys for your project:
+```bash
+npx web-push generate-vapid-keys
 ```
-VITE_VAPID_PUBLIC_KEY=BEzrNrUzrHbH1BCanMSKCGeqbJBBRmaJqq6YWosCanotZc2TRIG8z8n0Q36QzZoijdyVtY2Qxrcz4l6M4h62ELw
+
+Add the public key to your `.env` file:
+```
+VITE_VAPID_PUBLIC_KEY=YOUR_GENERATED_PUBLIC_KEY
 ```
 
 ### 4. **Deploy Functions**
-The private VAPID key is hardcoded in the Firebase Functions. For production, set it as an environment variable:
+Set the private VAPID key as an environment variable for Firebase Functions:
 
 ```bash
-firebase functions:config:set vapid.private_key="BmpOxzTRRyD3K05oCGOraYl4VYz7h5cEjER41CrsF1A"
+firebase functions:config:set vapid.private_key="YOUR_GENERATED_PRIVATE_KEY"
 ```
 
 ## Security Notes
