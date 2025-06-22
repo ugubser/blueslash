@@ -44,8 +44,8 @@ export const signInWithGoogle = async (): Promise<User | null> => {
         notificationPreferences: {
           email: false,
           push: false,
-          taskReminders: true,
-          verificationRequests: true
+          taskReminders: false,
+          verificationRequests: false
         },
         createdAt: new Date()
       };

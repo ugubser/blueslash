@@ -86,8 +86,8 @@ export class UserService {
       await this.updateNotificationPreferences(userId, {
         email: false,
         push: false,
-        taskReminders: true,
-        verificationRequests: true
+        taskReminders: false,
+        verificationRequests: false
       });
     }
   }

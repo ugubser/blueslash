@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, BellOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { notificationService } from '../services/notifications';
+import { userService } from '../services/users';
 import { useAuth } from '../hooks/useAuth';
 
 interface NotificationPermissionProps {
@@ -10,15 +11,30 @@ interface NotificationPermissionProps {
 const NotificationPermission: React.FC<NotificationPermissionProps> = ({ onPermissionChange }) => {
   const { user } = useAuth();
   const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [userPushEnabled, setUserPushEnabled] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    if (notificationService.isSupported()) {
-      setPermission(notificationService.getPermissionStatus());
-    }
-  }, []);
+    const checkNotificationStatus = async () => {
+      if (notificationService.isSupported()) {
+        setPermission(notificationService.getPermissionStatus());
+      }
+      
+      if (user) {
+        try {
+          const preferences = await userService.getNotificationPreferences(user.id);
+          setUserPushEnabled(preferences?.push || false);
+        } catch (error) {
+          console.error('Error fetching notification preferences:', error);
+          setUserPushEnabled(false);
+        }
+      }
+    };
+    
+    checkNotificationStatus();
+  }, [user]);
 
   const handleEnableNotifications = async () => {
     if (!user) return;
@@ -31,6 +47,7 @@ const NotificationPermission: React.FC<NotificationPermissionProps> = ({ onPermi
       const token = await notificationService.getSubscriptionToken(user.id);
       if (token) {
         setPermission('granted');
+        setUserPushEnabled(true);
         setSuccess('Notifications enabled successfully!');
         onPermissionChange?.(true);
         
@@ -59,6 +76,7 @@ const NotificationPermission: React.FC<NotificationPermissionProps> = ({ onPermi
     try {
       await notificationService.unsubscribe(user.id);
       setPermission('default'); // Reset permission state
+      setUserPushEnabled(false);
       setSuccess('Notifications disabled successfully!');
       onPermissionChange?.(false);
       
@@ -92,35 +110,40 @@ const NotificationPermission: React.FC<NotificationPermissionProps> = ({ onPermi
   }
 
   const getStatusInfo = () => {
-    switch (permission) {
-      case 'granted':
-        return {
-          icon: <Bell className="w-5 h-5 text-green-600" />,
-          title: 'Notifications Enabled',
-          description: 'You\'ll receive reminders for upcoming task due dates.',
-          bgColor: 'bg-green-50',
-          borderColor: 'border-green-200',
-          textColor: 'text-green-800'
-        };
-      case 'denied':
-        return {
-          icon: <BellOff className="w-5 h-5 text-red-600" />,
-          title: 'Notifications Blocked',
-          description: 'Please enable notifications in your browser settings to receive task reminders.',
-          bgColor: 'bg-red-50',
-          borderColor: 'border-red-200',
-          textColor: 'text-red-800'
-        };
-      default:
-        return {
-          icon: <Bell className="w-5 h-5 text-mario-blue" />,
-          title: 'Enable Task Reminders',
-          description: 'Get notified 1 week, 4 days, 2 days, and 1 day before your tasks are due.',
-          bgColor: 'bg-blue-50',
-          borderColor: 'border-mario-blue',
-          textColor: 'text-mario-blue'
-        };
+    // Check both browser permission AND user preferences
+    const isFullyEnabled = permission === 'granted' && userPushEnabled;
+    
+    if (permission === 'denied') {
+      return {
+        icon: <BellOff className="w-5 h-5 text-red-600" />,
+        title: 'Notifications Blocked',
+        description: 'Please enable notifications in your browser settings to receive task reminders.',
+        bgColor: 'bg-red-50',
+        borderColor: 'border-red-200',
+        textColor: 'text-red-800'
+      };
     }
+    
+    if (isFullyEnabled) {
+      return {
+        icon: <Bell className="w-5 h-5 text-green-600" />,
+        title: 'Notifications Enabled',
+        description: 'You\'ll receive reminders for upcoming task due dates.',
+        bgColor: 'bg-green-50',
+        borderColor: 'border-green-200',
+        textColor: 'text-green-800'
+      };
+    }
+    
+    // Default: either permission not granted or user preferences disabled
+    return {
+      icon: <Bell className="w-5 h-5 text-mario-blue" />,
+      title: 'Enable Task Reminders',
+      description: 'Get notified 1 week, 4 days, 2 days, and 1 day before your tasks are due.',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-mario-blue',
+      textColor: 'text-mario-blue'
+    };
   };
 
   const statusInfo = getStatusInfo();
@@ -139,7 +162,7 @@ const NotificationPermission: React.FC<NotificationPermissionProps> = ({ onPermi
             </p>
             
             {/* Reminder schedule info */}
-            {permission === 'default' && (
+            {!(permission === 'granted' && userPushEnabled) && (
               <div className="mt-3 p-3 bg-white rounded border border-gray-200">
                 <h4 className="font-semibold text-gray-800 text-sm mb-2">Reminder Schedule:</h4>
                 <ul className="text-xs text-gray-600 space-y-1">
@@ -154,7 +177,7 @@ const NotificationPermission: React.FC<NotificationPermissionProps> = ({ onPermi
         </div>
 
         <div className="ml-4 flex flex-col gap-2">
-          {permission === 'default' && (
+          {!(permission === 'granted' && userPushEnabled) && (
             <button
               onClick={handleEnableNotifications}
               disabled={isLoading}
@@ -164,7 +187,7 @@ const NotificationPermission: React.FC<NotificationPermissionProps> = ({ onPermi
             </button>
           )}
 
-          {permission === 'granted' && (
+          {(permission === 'granted' && userPushEnabled) && (
             <button
               onClick={handleDisableNotifications}
               disabled={isLoading}
