@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Coins, Calendar, FileText, Edit, Repeat, Brain, Loader, CheckSquare } from 'lucide-react';
 import { createTask, updateTask } from '../services/tasks';
+import { deleteField } from 'firebase/firestore';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -101,22 +102,27 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
       // Parse checklist groups from description if present
       const checklistGroups = hasChecklistItems(description.trim()) 
         ? parseMarkdownChecklist(description.trim())
-        : undefined;
+        : deleteField(); // Use deleteField() to remove the field when no checklist items
       
       if (isEditing && editTask) {
         // Update existing task
-        await updateTask(editTask.id, {
+        const updateData: any = {
           title: title.trim(),
           description: description.trim(),
           status: isDraft ? 'draft' : 'published',
           dueDate: new Date(dueDate || Date.now() + 3 * 24 * 60 * 60 * 1000),
           gems: finalGems,
-          recurrence,
           checklistGroups
-        });
+        };
+        
+        if (recurrence) {
+          updateData.recurrence = recurrence;
+        }
+        
+        await updateTask(editTask.id, updateData);
       } else {
         // Create new task
-        await createTask({
+        const newTaskData: any = {
           householdId: household!.id,
           creatorId: user.id,
           title: title.trim(),
@@ -124,10 +130,18 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
           status: isDraft ? 'draft' : 'published',
           dueDate: new Date(dueDate || Date.now() + 3 * 24 * 60 * 60 * 1000),
           gems: finalGems,
-          recurrence,
           verifications: [],
-          checklistGroups
-        });
+        };
+        
+        if (recurrence) {
+          newTaskData.recurrence = recurrence;
+        }
+        
+        if (hasChecklistItems(description.trim())) {
+          newTaskData.checklistGroups = parseMarkdownChecklist(description.trim());
+        }
+        
+        await createTask(newTaskData);
       }
 
       if (!isEditing) {

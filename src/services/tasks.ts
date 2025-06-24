@@ -66,7 +66,7 @@ export const updateTask = async (taskId: string, updates: Partial<Pick<Task, 'ti
       updatedAt: new Date()
     };
 
-    // Filter out undefined values for Firestore
+    // Filter out undefined values for Firestore (but allow deleteField() and other values)
     const updateDataForFirestore = Object.fromEntries(
       Object.entries(updateData).filter(([, value]) => value !== undefined)
     );

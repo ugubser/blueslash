@@ -19,7 +19,7 @@ export const parseMarkdownChecklist = (description: string): ChecklistGroup[] =>
         currentGroup = {
           id: uuidv4(),
           items: [],
-          contextBefore: contextLines.length > 0 ? contextLines.join('\n').trim() : undefined
+          ...(contextLines.length > 0 && { contextBefore: contextLines.join('\n').trim() })
         };
         contextLines = [];
       }
