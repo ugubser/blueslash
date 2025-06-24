@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar, Coins, User, CheckCircle, Edit, Repeat, Trash2, ArrowLeft, X } from 'lucide-react';
-import type { Task } from '../types';
+import type { Task, ChecklistItem } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
-import { updateTaskStatus, verifyTask, createRecurringTask, deleteTask } from '../services/tasks';
+import { updateTaskStatus, verifyTask, createRecurringTask, deleteTask, updateTaskChecklist } from '../services/tasks';
+import { parseMarkdownChecklist, hasChecklistItems, renderDescriptionWithoutChecklist } from '../utils/checklist';
+import TaskChecklist from './TaskChecklist';
 
 interface TaskCardProps {
   task: Task;
@@ -14,12 +16,48 @@ interface TaskCardProps {
 const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask }) => {
   const { user } = useAuth();
   const { members } = useHousehold();
+  const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
+
+  // Initialize checklist items when task changes
+  useEffect(() => {
+    if (task.checklistItems) {
+      setChecklistItems(task.checklistItems);
+    } else if (hasChecklistItems(task.description)) {
+      // Parse checklist from description if not already stored
+      const parsedItems = parseMarkdownChecklist(task.description);
+      setChecklistItems(parsedItems);
+    } else {
+      setChecklistItems([]);
+    }
+  }, [task]);
+
+  const handleChecklistItemToggle = async (itemId: string) => {
+    if (!user || task.claimedBy !== user.id) return;
+
+    try {
+      const updatedItems = checklistItems.map(item =>
+        item.id === itemId ? { ...item, completed: !item.completed } : item
+      );
+      
+      setChecklistItems(updatedItems);
+      await updateTaskChecklist(task.id, updatedItems, user.id);
+    } catch (error) {
+      console.error('Error updating checklist:', error);
+      // Revert the optimistic update
+      setChecklistItems(checklistItems);
+    }
+  };
 
   const handleClaimTask = async () => {
     if (!user || task.status !== 'published') return;
     
     try {
       await updateTaskStatus(task.id, 'claimed', user.id);
+      
+      // If task has checklist items from description, save them to the database
+      if (checklistItems.length > 0 && !task.checklistItems) {
+        await updateTaskChecklist(task.id, checklistItems, user.id);
+      }
     } catch (error) {
       console.error('Error claiming task:', error);
       if (error instanceof Error && error.message.includes('no longer available')) {
@@ -156,8 +194,19 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask }) => {
       </div>
 
       <p className="text-gray-600 text-sm mb-4 leading-relaxed font-normal">
-        {task.description}
+        {hasChecklistItems(task.description) 
+          ? renderDescriptionWithoutChecklist(task.description)
+          : task.description
+        }
       </p>
+
+      {checklistItems.length > 0 && (
+        <TaskChecklist
+          items={checklistItems}
+          canEdit={user?.id === task.claimedBy && (task.status === 'claimed' || task.status === 'completed')}
+          onItemToggle={handleChecklistItemToggle}
+        />
+      )}
 
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4 text-sm text-gray-500">

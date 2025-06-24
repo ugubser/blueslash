@@ -39,6 +39,12 @@ export interface InviteToken {
   createdAt: Date;
 }
 
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
 export interface Task {
   id: string;
   householdId: string;
@@ -51,6 +57,7 @@ export interface Task {
   gems: number;
   recurrence?: RecurrenceConfig;
   verifications: Verification[];
+  checklistItems?: ChecklistItem[];
   createdAt: Date;
   updatedAt: Date;
 }

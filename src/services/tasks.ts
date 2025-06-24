@@ -17,7 +17,7 @@ import {
 } from 'firebase/firestore';
 import type { Unsubscribe } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Task, TaskStatus, Verification, GemTransaction } from '../types';
+import type { Task, TaskStatus, Verification, GemTransaction, ChecklistItem } from '../types';
 import { updateUserGems } from './auth';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -45,7 +45,7 @@ export const createTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'upda
   }
 };
 
-export const updateTask = async (taskId: string, updates: Partial<Pick<Task, 'title' | 'description' | 'dueDate' | 'gems' | 'status' | 'recurrence'>>): Promise<void> => {
+export const updateTask = async (taskId: string, updates: Partial<Pick<Task, 'title' | 'description' | 'dueDate' | 'gems' | 'status' | 'recurrence' | 'checklistItems'>>): Promise<void> => {
   try {
     const taskRef = doc(db, 'tasks', taskId);
     const taskDoc = await getDoc(taskRef);
@@ -441,5 +441,35 @@ export const subscribeToUserTasks = (
   } catch (error) {
     console.error('Error setting up user tasks subscription:', error);
     return () => {}; // Return empty unsubscribe function
+  }
+};
+
+export const updateTaskChecklist = async (taskId: string, checklistItems: ChecklistItem[], userId: string): Promise<void> => {
+  try {
+    const taskRef = doc(db, 'tasks', taskId);
+    const taskDoc = await getDoc(taskRef);
+    
+    if (!taskDoc.exists()) {
+      throw new Error('Task not found');
+    }
+
+    const currentTask = taskDoc.data() as Task;
+    
+    // Only allow the claimer to update checklist items for claimed/completed tasks
+    if (currentTask.claimedBy !== userId) {
+      throw new Error('Only the task claimer can update checklist items');
+    }
+
+    if (currentTask.status !== 'claimed' && currentTask.status !== 'completed') {
+      throw new Error('Checklist can only be updated for claimed or completed tasks');
+    }
+
+    await updateDoc(taskRef, {
+      checklistItems,
+      updatedAt: new Date()
+    });
+  } catch (error) {
+    console.error('Error updating task checklist:', error);
+    throw error;
   }
 };

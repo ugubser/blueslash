@@ -4,6 +4,7 @@ import { createTask, updateTask } from '../services/tasks';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { parseMarkdownChecklist, hasChecklistItems } from '../utils/checklist';
 import type { Task, RecurrenceConfig } from '../types';
 
 interface CreateTaskFormProps {
@@ -95,6 +96,11 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
         type: recurrenceType,
         interval: recurrenceInterval
       } : undefined;
+
+      // Parse checklist items from description if present
+      const checklistItems = hasChecklistItems(description.trim()) 
+        ? parseMarkdownChecklist(description.trim())
+        : undefined;
       
       if (isEditing && editTask) {
         // Update existing task
@@ -104,7 +110,8 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
           status: isDraft ? 'draft' : 'published',
           dueDate: new Date(dueDate || Date.now() + 3 * 24 * 60 * 60 * 1000),
           gems: finalGems,
-          recurrence
+          recurrence,
+          checklistItems
         });
       } else {
         // Create new task
@@ -117,7 +124,8 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
           dueDate: new Date(dueDate || Date.now() + 3 * 24 * 60 * 60 * 1000),
           gems: finalGems,
           recurrence,
-          verifications: []
+          verifications: [],
+          checklistItems
         });
       }
 
@@ -228,6 +236,8 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
             />
             <p className="text-xs text-gray-500 mt-1">
               Rich descriptions help others understand the task better and earn more gems!
+              <br />
+              <strong>Pro tip:</strong> Create interactive checklists using markdown syntax: <code>- [ ] item</code>
             </p>
           </div>
 
