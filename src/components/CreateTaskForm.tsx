@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Coins, Calendar, FileText, Edit, Repeat, Brain, Loader } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, Coins, Calendar, FileText, Edit, Repeat, Brain, Loader, CheckSquare } from 'lucide-react';
 import { createTask, updateTask } from '../services/tasks';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
@@ -28,6 +28,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
   const [calculatingGems, setCalculatingGems] = useState(false);
   const [gemCalculationError, setGemCalculationError] = useState<string | null>(null);
   const [hasUsedAI, setHasUsedAI] = useState(false);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
   const isEditing = !!editTask;
   
@@ -191,6 +192,30 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
     }
   };
 
+  const addChecklistItem = () => {
+    const textarea = descriptionRef.current;
+    if (!textarea) return;
+
+    const cursorPosition = textarea.selectionStart;
+    const textValue = textarea.value;
+    const beforeCursor = textValue.substring(0, cursorPosition);
+    const afterCursor = textValue.substring(cursorPosition);
+
+    // Check if we need to add a newline before the checklist item
+    const needsNewlineBefore = beforeCursor.length > 0 && !beforeCursor.endsWith('\n');
+    const prefix = needsNewlineBefore ? '\n- [ ] ' : '- [ ] ';
+    
+    const newValue = beforeCursor + prefix + afterCursor;
+    setDescription(newValue);
+
+    // Set cursor position after the inserted text
+    setTimeout(() => {
+      const newCursorPosition = cursorPosition + prefix.length;
+      textarea.focus();
+      textarea.setSelectionRange(newCursorPosition, newCursorPosition);
+    }, 0);
+  };
+
   return (
     <div className="mario-card">
       <form onSubmit={handleSubmit}>
@@ -223,11 +248,22 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              <FileText size={16} className="inline mr-1" />
-              Description
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-bold text-gray-700">
+                <FileText size={16} className="inline mr-1" />
+                Description
+              </label>
+              <button
+                type="button"
+                onClick={addChecklistItem}
+                className="mario-button-blue flex items-center gap-2 px-3 py-1 text-xs"
+              >
+                <CheckSquare size={14} />
+                Add Checklist Item
+              </button>
+            </div>
             <textarea
+              ref={descriptionRef}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="mario-textarea"
@@ -236,8 +272,6 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
             />
             <p className="text-xs text-gray-500 mt-1">
               Rich descriptions help others understand the task better and earn more gems!
-              <br />
-              <strong>Pro tip:</strong> Create interactive checklists using markdown syntax: <code>- [ ] item</code>
             </p>
           </div>
 
