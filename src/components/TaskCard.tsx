@@ -2,6 +2,7 @@ import React from 'react';
 import { Calendar, Coins, User, CheckCircle, Edit, Repeat, Trash2, ArrowLeft, X } from 'lucide-react';
 import type { Task } from '../types';
 import { useAuth } from '../hooks/useAuth';
+import { useHousehold } from '../hooks/useHousehold';
 import { updateTaskStatus, verifyTask, createRecurringTask, deleteTask } from '../services/tasks';
 
 interface TaskCardProps {
@@ -12,6 +13,7 @@ interface TaskCardProps {
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask }) => {
   const { user } = useAuth();
+  const { members } = useHousehold();
 
   const handleClaimTask = async () => {
     if (!user || task.status !== 'published') return;
@@ -174,7 +176,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask }) => {
         <div className="flex items-center gap-2 mb-3 text-sm">
           <User size={16} />
           <span className="text-gray-600">
-            {task.claimedBy === user?.id ? 'Claimed by you' : 'Claimed by someone'}
+            {task.claimedBy === user?.id 
+              ? 'Claimed by you' 
+              : `Claimed by ${members.find(m => m.id === task.claimedBy)?.displayName || 'someone'}`
+            }
           </span>
         </div>
       )}
