@@ -4,15 +4,17 @@ import TaskCard from '../components/TaskCard';
 import CreateTaskForm from '../components/CreateTaskForm';
 import Leaderboard from '../components/Leaderboard';
 import { useHouseholdTasks } from '../hooks/useTasks';
+import { useAuth } from '../hooks/useAuth';
 import type { TaskStatus, Task } from '../types';
 
 const Dashboard: React.FC = () => {
+  const { user } = useAuth();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
-  const { tasks, loading } = useHouseholdTasks(
-    statusFilter === 'all' ? undefined : statusFilter
+  const [activeFilters, setActiveFilters] = useState<Set<TaskStatus>>(
+    new Set(['published', 'completed'])
   );
+  const { tasks, loading } = useHouseholdTasks();
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
@@ -24,9 +26,27 @@ const Dashboard: React.FC = () => {
     setEditingTask(null);
   };
 
-  const filteredTasks = statusFilter === 'all' 
-    ? tasks 
-    : tasks.filter(task => task.status === statusFilter);
+  const toggleFilter = (status: TaskStatus) => {
+    setActiveFilters(prev => {
+      const newFilters = new Set(prev);
+      if (newFilters.has(status)) {
+        newFilters.delete(status);
+      } else {
+        newFilters.add(status);
+      }
+      return newFilters;
+    });
+  };
+
+  const filteredTasks = tasks
+    .filter(task => activeFilters.has(task.status))
+    .filter(task => {
+      // Draft tasks should only be visible to their creator
+      if (task.status === 'draft') {
+        return task.creatorId === user?.id;
+      }
+      return true;
+    });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -64,24 +84,26 @@ const Dashboard: React.FC = () => {
               <h3 className="font-bold text-gray-800">Filter Tasks</h3>
             </div>
             
-            <div className="relative">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as TaskStatus | 'all')}
-                className="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg font-bold text-gray-700 focus:border-mario-blue focus:outline-none hover:border-mario-blue transition-colors appearance-none cursor-pointer"
-              >
-                <option value="all">All Tasks</option>
-                <option value="published">Available</option>
-                <option value="claimed">In Progress</option>
-                <option value="completed">Completed</option>
-                <option value="verified">Verified</option>
-                <option value="draft">Drafts</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                <svg className="w-4 h-4 fill-current text-gray-400" viewBox="0 0 20 20">
-                  <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                </svg>
-              </div>
+            <div className="flex flex-wrap gap-2">
+              {([
+                { status: 'published' as TaskStatus, label: 'Available' },
+                { status: 'claimed' as TaskStatus, label: 'In Progress' },
+                { status: 'completed' as TaskStatus, label: 'Completed' },
+                { status: 'verified' as TaskStatus, label: 'Verified' },
+                { status: 'draft' as TaskStatus, label: 'Drafts' }
+              ]).map(({ status, label }) => (
+                <button
+                  key={status}
+                  onClick={() => toggleFilter(status)}
+                  className={`px-3 py-2 rounded-lg font-bold text-sm transition-colors ${
+                    activeFilters.has(status)
+                      ? 'bg-mario-blue text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -97,7 +119,7 @@ const Dashboard: React.FC = () => {
           )}
 
           {/* Tasks List */}
-          {loading ? (
+          {(showCreateForm || editingTask) ? null : loading ? (
             <div className="flex justify-center py-12">
               <div className="loading-spinner w-12 h-12" />
             </div>
@@ -118,15 +140,15 @@ const Dashboard: React.FC = () => {
                 <Plus size={48} className="mx-auto" />
               </div>
               <h3 className="text-lg font-bold text-gray-600 mb-2">
-                {statusFilter === 'all' ? 'No Tasks Yet' : `No ${statusFilter} tasks`}
+                {activeFilters.size === 0 ? 'No Filters Selected' : 'No Matching Tasks'}
               </h3>
               <p className="text-gray-500 mb-4 font-normal">
-                {statusFilter === 'all' 
-                  ? 'Create your first task to get started!'
-                  : `No tasks with status "${statusFilter}"`
+                {activeFilters.size === 0 
+                  ? 'Select at least one filter to view tasks'
+                  : `No tasks found for the selected filters`
                 }
               </p>
-              {statusFilter === 'all' && (
+              {activeFilters.size > 0 && (
                 <button
                   onClick={() => {
                     setShowCreateForm(true);
@@ -134,7 +156,7 @@ const Dashboard: React.FC = () => {
                   }}
                   className="mario-button"
                 >
-                  Create First Task
+                  Create New Task
                 </button>
               )}
             </div>
