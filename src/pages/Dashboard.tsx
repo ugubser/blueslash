@@ -12,7 +12,7 @@ const Dashboard: React.FC = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [activeFilters, setActiveFilters] = useState<Set<TaskStatus>>(
-    new Set(['published', 'completed'])
+    new Set(['published', 'claimed', 'completed', 'draft'])
   );
   const { tasks, loading } = useHouseholdTasks();
 
