@@ -45,6 +45,12 @@ export interface ChecklistItem {
   completed: boolean;
 }
 
+export interface ChecklistGroup {
+  id: string;
+  items: ChecklistItem[];
+  contextBefore?: string;
+}
+
 export interface Task {
   id: string;
   householdId: string;
@@ -57,7 +63,7 @@ export interface Task {
   gems: number;
   recurrence?: RecurrenceConfig;
   verifications: Verification[];
-  checklistItems?: ChecklistItem[];
+  checklistGroups?: ChecklistGroup[];
   createdAt: Date;
   updatedAt: Date;
 }

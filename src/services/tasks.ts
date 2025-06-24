@@ -17,7 +17,7 @@ import {
 } from 'firebase/firestore';
 import type { Unsubscribe } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Task, TaskStatus, Verification, GemTransaction, ChecklistItem } from '../types';
+import type { Task, TaskStatus, Verification, GemTransaction, ChecklistGroup } from '../types';
 import { updateUserGems } from './auth';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -45,7 +45,7 @@ export const createTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'upda
   }
 };
 
-export const updateTask = async (taskId: string, updates: Partial<Pick<Task, 'title' | 'description' | 'dueDate' | 'gems' | 'status' | 'recurrence' | 'checklistItems'>>): Promise<void> => {
+export const updateTask = async (taskId: string, updates: Partial<Pick<Task, 'title' | 'description' | 'dueDate' | 'gems' | 'status' | 'recurrence' | 'checklistGroups'>>): Promise<void> => {
   try {
     const taskRef = doc(db, 'tasks', taskId);
     const taskDoc = await getDoc(taskRef);
@@ -444,7 +444,7 @@ export const subscribeToUserTasks = (
   }
 };
 
-export const updateTaskChecklist = async (taskId: string, checklistItems: ChecklistItem[], userId: string): Promise<void> => {
+export const updateTaskChecklist = async (taskId: string, checklistGroups: ChecklistGroup[], userId: string): Promise<void> => {
   try {
     const taskRef = doc(db, 'tasks', taskId);
     const taskDoc = await getDoc(taskRef);
@@ -465,7 +465,7 @@ export const updateTaskChecklist = async (taskId: string, checklistItems: Checkl
     }
 
     await updateDoc(taskRef, {
-      checklistItems,
+      checklistGroups,
       updatedAt: new Date()
     });
   } catch (error) {

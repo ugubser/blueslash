@@ -97,8 +97,8 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
         interval: recurrenceInterval
       } : undefined;
 
-      // Parse checklist items from description if present
-      const checklistItems = hasChecklistItems(description.trim()) 
+      // Parse checklist groups from description if present
+      const checklistGroups = hasChecklistItems(description.trim()) 
         ? parseMarkdownChecklist(description.trim())
         : undefined;
       
@@ -111,7 +111,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
           dueDate: new Date(dueDate || Date.now() + 3 * 24 * 60 * 60 * 1000),
           gems: finalGems,
           recurrence,
-          checklistItems
+          checklistGroups
         });
       } else {
         // Create new task
@@ -125,7 +125,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
           gems: finalGems,
           recurrence,
           verifications: [],
-          checklistItems
+          checklistGroups
         });
       }
 

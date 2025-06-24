@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, Coins, User, CheckCircle, Edit, Repeat, Trash2, ArrowLeft, X } from 'lucide-react';
-import type { Task, ChecklistItem } from '../types';
+import type { Task, ChecklistGroup } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
 import { updateTaskStatus, verifyTask, createRecurringTask, deleteTask, updateTaskChecklist } from '../services/tasks';
@@ -16,35 +16,42 @@ interface TaskCardProps {
 const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask }) => {
   const { user } = useAuth();
   const { members } = useHousehold();
-  const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
+  const [checklistGroups, setChecklistGroups] = useState<ChecklistGroup[]>([]);
 
-  // Initialize checklist items when task changes
+  // Initialize checklist groups when task changes
   useEffect(() => {
-    if (task.checklistItems) {
-      setChecklistItems(task.checklistItems);
+    if (task.checklistGroups) {
+      setChecklistGroups(task.checklistGroups);
     } else if (hasChecklistItems(task.description)) {
       // Parse checklist from description if not already stored
-      const parsedItems = parseMarkdownChecklist(task.description);
-      setChecklistItems(parsedItems);
+      const parsedGroups = parseMarkdownChecklist(task.description);
+      setChecklistGroups(parsedGroups);
     } else {
-      setChecklistItems([]);
+      setChecklistGroups([]);
     }
   }, [task]);
 
-  const handleChecklistItemToggle = async (itemId: string) => {
+  const handleChecklistItemToggle = async (groupId: string, itemId: string) => {
     if (!user || task.claimedBy !== user.id) return;
 
     try {
-      const updatedItems = checklistItems.map(item =>
-        item.id === itemId ? { ...item, completed: !item.completed } : item
+      const updatedGroups = checklistGroups.map(group =>
+        group.id === groupId
+          ? {
+              ...group,
+              items: group.items.map(item =>
+                item.id === itemId ? { ...item, completed: !item.completed } : item
+              )
+            }
+          : group
       );
       
-      setChecklistItems(updatedItems);
-      await updateTaskChecklist(task.id, updatedItems, user.id);
+      setChecklistGroups(updatedGroups);
+      await updateTaskChecklist(task.id, updatedGroups, user.id);
     } catch (error) {
       console.error('Error updating checklist:', error);
       // Revert the optimistic update
-      setChecklistItems(checklistItems);
+      setChecklistGroups(checklistGroups);
     }
   };
 
@@ -54,9 +61,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask }) => {
     try {
       await updateTaskStatus(task.id, 'claimed', user.id);
       
-      // If task has checklist items from description, save them to the database
-      if (checklistItems.length > 0 && !task.checklistItems) {
-        await updateTaskChecklist(task.id, checklistItems, user.id);
+      // If task has checklist groups from description, save them to the database
+      if (checklistGroups.length > 0 && !task.checklistGroups) {
+        await updateTaskChecklist(task.id, checklistGroups, user.id);
       }
     } catch (error) {
       console.error('Error claiming task:', error);
@@ -200,9 +207,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask }) => {
         }
       </p>
 
-      {checklistItems.length > 0 && (
+      {checklistGroups.length > 0 && (
         <TaskChecklist
-          items={checklistItems}
+          groups={checklistGroups}
           canEdit={user?.id === task.claimedBy && (task.status === 'claimed' || task.status === 'completed')}
           onItemToggle={handleChecklistItemToggle}
         />
