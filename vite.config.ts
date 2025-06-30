@@ -6,12 +6,19 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     ...(mode === 'production' ? [VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       devOptions: {
         enabled: false
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // Don't fallback on assets with hash (they're immutable)
+        dontCacheBustURLsMatching: /^assets\/.*\.[a-f0-9]{8}\.(js|css)$/,
+        // Clean up outdated caches on activation
+        cleanupOutdatedCaches: true,
+        // Skip waiting and claim clients for immediate updates
+        skipWaiting: true,
+        clientsClaim: true,
         // Skip caching Firebase Auth related URLs to prevent conflicts
         navigateFallbackDenylist: [
           /^\/__\/auth\/.*/,
