@@ -44,12 +44,12 @@ export const useNotifications = (): UseNotificationsReturn => {
     if (user?.notificationPreferences) {
       setPreferences(user.notificationPreferences);
     } else {
-      // Set default preferences
+      // Set default preferences - all disabled until user opts in
       setPreferences({
         email: false,
-        push: true,
-        taskReminders: true,
-        verificationRequests: true
+        push: false,
+        taskReminders: false,
+        verificationRequests: false
       });
     }
   }, [user]);
