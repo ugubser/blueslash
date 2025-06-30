@@ -103,10 +103,10 @@ const Dashboard: React.FC = () => {
                   <span className="sm:hidden">
                     <Icon size={16} />
                   </span>
-                  {/* Desktop/Tablet: Icon + Text */}
+                  {/* Tablet/Desktop: Icon + Text */}
                   <span className="hidden sm:flex items-center gap-2">
                     <Icon size={14} />
-                    {label}
+                    <span className="text-xs xl:text-sm">{label}</span>
                   </span>
                 </button>
               ))}

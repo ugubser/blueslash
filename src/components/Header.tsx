@@ -82,8 +82,8 @@ const Header: React.FC = () => {
           )}
         </div>
 
-        {/* Mobile Layout - Compact Single Line */}
-        <div className="hidden sm:flex xl:hidden justify-between items-center h-16">
+        {/* Tablet Layout - Compact Single Line (removed, now uses mobile layout) */}
+        <div className="hidden xl:flex justify-between items-center h-16" style={{display: 'none'}}>
           <div className="flex items-center gap-4">
             <Link to="/dashboard" className="text-xl font-bold text-mario-blue hover:text-mario-blue-dark transition-colors">
               BlueSlash
@@ -143,8 +143,8 @@ const Header: React.FC = () => {
           )}
         </div>
 
-        {/* Small Mobile Layout - Two Lines */}
-        <div className="sm:hidden py-2">
+        {/* Mobile and Tablet Layout - Two Lines */}
+        <div className="xl:hidden py-2">
           {/* First Line */}
           <div className="flex justify-between items-center mb-2">
             <div className="flex-1 mr-2">
