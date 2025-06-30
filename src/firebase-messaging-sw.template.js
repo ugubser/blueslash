@@ -24,8 +24,8 @@ messaging.onBackgroundMessage(function(payload) {
   const notificationTitle = payload.notification?.title || 'BlueSlash';
   const notificationOptions = {
     body: payload.notification?.body || 'You have a new notification',
-    icon: payload.notification?.icon || '/vite.svg',
-    badge: '/vite.svg',
+    icon: payload.notification?.icon || '/icon-192x192.png',
+    badge: '/badge-72x72.png',
     tag: payload.data?.taskId || 'general',
     data: payload.data,
     actions: [

@@ -68,12 +68,12 @@ export default defineConfig(({ mode }) => ({
         scope: '/',
         icons: [
           {
-            src: '/icons/icon-192x192.png',
+            src: '/icon-192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/icons/icon-512x512.png',
+            src: '/icon-512x512.png',
             sizes: '512x512',
             type: 'image/png'
           }
@@ -81,4 +81,19 @@ export default defineConfig(({ mode }) => ({
       }
     })] : [])
   ],
+  // Copy static assets including notification icons
+  assetsInclude: ['**/*.png', '**/*.svg'],
+  build: {
+    rollupOptions: {
+      output: {
+        assetFileNames: (assetInfo) => {
+          // Keep notification icons at root level
+          if (assetInfo.name && (assetInfo.name.includes('icon-') || assetInfo.name.includes('badge-'))) {
+            return '[name][extname]';
+          }
+          return 'assets/[name]-[hash][extname]';
+        }
+      }
+    }
+  }
 }))
