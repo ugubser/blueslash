@@ -163,13 +163,10 @@ If something exceed any of these things, then it's 25 Gems.`;
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+      <div className="mb-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
           Household Settings
         </h1>
-        <p className="text-gray-600 font-normal">
-          Manage your household members and invite new people to join.
-        </p>
       </div>
 
       {/* Household Info */}
@@ -301,39 +298,77 @@ If something exceed any of these things, then it's 25 Gems.`;
             {members.map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                className="p-4 bg-gray-50 rounded-lg"
               >
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    {member.id === household.headOfHousehold ? (
-                      <Crown size={20} className="text-yellow-500" />
-                    ) : (
-                      <User size={20} className="text-gray-400" />
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-800">{member.displayName}</h3>
-                    <p className="text-sm text-gray-600">{member.email}</p>
-                    <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
-                      <span>{member.gems.toLocaleString()} gems</span>
-                      <span>
-                        {member.id === household.headOfHousehold ? 'Head of Household' : 'Member'}
-                      </span>
+                {/* Desktop layout: side-by-side */}
+                <div className="hidden sm:flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      {member.id === household.headOfHousehold ? (
+                        <Crown size={20} className="text-yellow-500" />
+                      ) : (
+                        <User size={20} className="text-gray-400" />
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800">{member.displayName}</h3>
+                      <p className="text-sm text-gray-600 truncate" title={member.email}>{member.email}</p>
+                      <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+                        <span>{member.gems.toLocaleString()} gems</span>
+                        <span>
+                          {member.id === household.headOfHousehold ? 'Head of Household' : 'Member'}
+                        </span>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Remove button for desktop */}
+                  {isHeadOfHousehold && member.id !== user.id && member.id !== household.headOfHousehold && (
+                    <button
+                      onClick={() => handleRemoveMember(member.id)}
+                      disabled={removingMember === member.id}
+                      className="mario-button-blue flex items-center gap-2 text-xs"
+                    >
+                      <Trash2 size={14} />
+                      {removingMember === member.id ? 'Removing...' : 'Remove'}
+                    </button>
+                  )}
                 </div>
 
-                {/* Remove button - only for head of household and not for themselves */}
-                {isHeadOfHousehold && member.id !== user.id && member.id !== household.headOfHousehold && (
-                  <button
-                    onClick={() => handleRemoveMember(member.id)}
-                    disabled={removingMember === member.id}
-                    className="mario-button-blue flex items-center gap-2 text-xs"
-                  >
-                    <Trash2 size={14} />
-                    {removingMember === member.id ? 'Removing...' : 'Remove'}
-                  </button>
-                )}
+                {/* Mobile layout: stacked */}
+                <div className="sm:hidden">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center gap-2">
+                      {member.id === household.headOfHousehold ? (
+                        <Crown size={18} className="text-yellow-500" />
+                      ) : (
+                        <User size={18} className="text-gray-400" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-gray-800">{member.displayName}</h3>
+                      <p className="text-sm text-gray-600 truncate" title={member.email}>{member.email}</p>
+                      <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+                        <span>{member.gems.toLocaleString()} gems</span>
+                        <span>
+                          {member.id === household.headOfHousehold ? 'Head of Household' : 'Member'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Remove button for mobile - under the info */}
+                  {isHeadOfHousehold && member.id !== user.id && member.id !== household.headOfHousehold && (
+                    <button
+                      onClick={() => handleRemoveMember(member.id)}
+                      disabled={removingMember === member.id}
+                      className="mario-button-blue flex items-center gap-1 text-xs px-2 py-1 text-xs"
+                    >
+                      <Trash2 size={12} />
+                      {removingMember === member.id ? 'Removing...' : 'Remove'}
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
         </div>
