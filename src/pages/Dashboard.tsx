@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, Filter, Clock, Play, CheckCircle, ShieldCheck, FileText } from 'lucide-react';
 import TaskCard from '../components/TaskCard';
 import CreateTaskForm from '../components/CreateTaskForm';
 import Leaderboard from '../components/Leaderboard';
@@ -53,55 +53,61 @@ const Dashboard: React.FC = () => {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Main Content */}
         <div className="flex-1">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
                 Household Tasks
               </h1>
-              <p className="text-gray-600 font-normal">
-                Manage and complete tasks to earn gems!
-              </p>
             </div>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowCreateForm(true);
-                  setEditingTask(null);
-                }}
-                className="mario-button flex items-center gap-2"
-              >
-                <Plus size={16} />
-                New Task
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                setShowCreateForm(true);
+                setEditingTask(null);
+              }}
+              className="mario-button flex items-center gap-2 text-sm px-3 py-2"
+            >
+              <Plus size={14} />
+              New Task
+            </button>
           </div>
 
           {/* Filters */}
-          <div className="mario-card mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Filter size={20} className="text-mario-blue" />
-              <h3 className="font-bold text-gray-800">Filter Tasks</h3>
+          <div className="mario-card mb-4">
+            <div className="flex items-center gap-3 mb-4 sm:mb-0 sm:justify-between">
+              <div className="flex items-center gap-2">
+                <Filter size={16} className="text-mario-blue" />
+                <h3 className="font-bold text-gray-800 text-sm sm:text-base">Filter Tasks</h3>
+              </div>
             </div>
             
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 sm:gap-1 sm:flex-nowrap sm:justify-end">
               {([
-                { status: 'published' as TaskStatus, label: 'Available' },
-                { status: 'claimed' as TaskStatus, label: 'In Progress' },
-                { status: 'completed' as TaskStatus, label: 'Completed' },
-                { status: 'verified' as TaskStatus, label: 'Verified' },
-                { status: 'draft' as TaskStatus, label: 'Drafts' }
-              ]).map(({ status, label }) => (
+                { status: 'published' as TaskStatus, label: 'Available', icon: Clock },
+                { status: 'claimed' as TaskStatus, label: 'In Progress', icon: Play },
+                { status: 'completed' as TaskStatus, label: 'Completed', icon: CheckCircle },
+                { status: 'verified' as TaskStatus, label: 'Verified', icon: ShieldCheck },
+                { status: 'draft' as TaskStatus, label: 'Drafts', icon: FileText }
+              ]).map(({ status, label, icon: Icon }) => (
                 <button
                   key={status}
                   onClick={() => toggleFilter(status)}
-                  className={`px-3 py-2 rounded-lg font-bold text-sm transition-colors ${
+                  className={`rounded-lg font-bold text-sm transition-colors ${
                     activeFilters.has(status)
                       ? 'bg-mario-blue text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
+                  } sm:p-2 px-3 py-2 sm:px-2`}
+                  title={label}
                 >
-                  {label}
+                  {/* Mobile: Icon only */}
+                  <span className="sm:hidden">
+                    <Icon size={16} />
+                  </span>
+                  {/* Desktop/Tablet: Icon + Text */}
+                  <span className="hidden sm:flex items-center gap-2">
+                    <Icon size={14} />
+                    {label}
+                  </span>
                 </button>
               ))}
             </div>

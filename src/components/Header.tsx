@@ -43,7 +43,7 @@ const Header: React.FC = () => {
             </Link>
             {isHeadOfHousehold && (
               <Link
-                to="/household-settings"
+                to={location.pathname === '/household-settings' ? '/dashboard' : '/household-settings'}
                 className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 ${
                   location.pathname === '/household-settings' 
                     ? 'bg-mario-blue text-white' 
@@ -82,8 +82,8 @@ const Header: React.FC = () => {
           )}
         </div>
 
-        {/* Tablet Layout - Compact Single Line */}
-        <div className="hidden lg:flex xl:hidden justify-between items-center h-16">
+        {/* Mobile Layout - Compact Single Line */}
+        <div className="hidden sm:flex xl:hidden justify-between items-center h-16">
           <div className="flex items-center gap-4">
             <Link to="/dashboard" className="text-xl font-bold text-mario-blue hover:text-mario-blue-dark transition-colors">
               BlueSlash
@@ -104,7 +104,7 @@ const Header: React.FC = () => {
             </Link>
             {isHeadOfHousehold && (
               <Link
-                to="/household-settings"
+                to={location.pathname === '/household-settings' ? '/dashboard' : '/household-settings'}
                 className={`px-3 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-1 ${
                   location.pathname === '/household-settings' 
                     ? 'bg-mario-blue text-white' 
@@ -143,16 +143,16 @@ const Header: React.FC = () => {
           )}
         </div>
 
-        {/* Mobile Layout - Two Lines */}
-        <div className="lg:hidden py-2">
+        {/* Small Mobile Layout - Two Lines */}
+        <div className="sm:hidden py-2">
           {/* First Line */}
           <div className="flex justify-between items-center mb-2">
-            <Link to="/dashboard" className="text-lg font-bold text-mario-blue hover:text-mario-blue-dark transition-colors">
-              BlueSlash
-            </Link>
+            <div className="flex-1 mr-2">
+              <HouseholdSwitcher />
+            </div>
             
             {user && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 <div className="gem-counter text-sm">
                   <Coins className="coin-icon" size={16} />
                   <span>{user.gems.toLocaleString()}</span>
@@ -160,7 +160,7 @@ const Header: React.FC = () => {
                 
                 {isHeadOfHousehold && (
                   <Link
-                    to="/household-settings"
+                    to={location.pathname === '/household-settings' ? '/dashboard' : '/household-settings'}
                     className={`p-2 rounded-lg transition-colors ${
                       location.pathname === '/household-settings' 
                         ? 'bg-mario-blue text-white' 
@@ -183,16 +183,16 @@ const Header: React.FC = () => {
 
           {/* Second Line */}
           <div className="flex justify-between items-center">
-            <HouseholdSwitcher />
-            
             {user && (
-              <div className="flex items-center gap-2 text-xs">
-                <User size={14} />
-                <span className="text-gray-700 truncate max-w-24">{user.displayName}</span>
-                <span className="power-up-badge text-xs whitespace-nowrap">
+              <>
+                <div className="flex items-center gap-2 text-xs flex-1">
+                  <User size={14} />
+                  <span className="text-gray-700 truncate">{user.displayName}</span>
+                </div>
+                <span className="power-up-badge text-xs whitespace-nowrap flex-shrink-0">
                   {getCurrentUserRole() === 'head' ? '👑 HEAD' : '👤 MEMBER'}
                 </span>
-              </div>
+              </>
             )}
           </div>
         </div>

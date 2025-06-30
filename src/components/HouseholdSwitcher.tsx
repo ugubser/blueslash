@@ -45,7 +45,7 @@ const HouseholdSwitcher: React.FC = () => {
         className="flex items-center space-x-2 px-3 py-2 bg-white rounded-lg border-2 border-gray-200 hover:border-mario-blue transition-colors duration-200 disabled:opacity-50"
       >
         <Home size={20} className="text-mario-blue" />
-        <span className="font-medium text-gray-700 max-w-32 truncate">
+        <span className="font-medium text-gray-700 max-w-32 sm:max-w-none truncate">
           {household.name}
         </span>
         <div className="flex items-center space-x-1">
