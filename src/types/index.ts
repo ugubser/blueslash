@@ -12,6 +12,9 @@ export interface User {
   currentHouseholdId?: string;
   gems: number;
   createdAt: Date;
+  notificationToken?: string;
+  notificationPreferences?: NotificationPreferences;
+  tokenUpdatedAt?: Date;
 }
 
 export interface Household {

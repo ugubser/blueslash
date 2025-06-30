@@ -10,6 +10,9 @@
 import {onCall} from "firebase-functions/v2/https";
 import {calculateGemsWithLLM} from "./llm-parser";
 
+// Import notification functions
+export * from "./notifications";
+
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
 

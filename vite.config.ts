@@ -1,10 +1,27 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { exec } from 'child_process'
+import { promisify } from 'util'
+
+const execAsync = promisify(exec);
+
+// Custom plugin to build service worker after Vite build
+const buildServiceWorkerPlugin = () => ({
+  name: 'build-service-worker',
+  writeBundle: async () => {
+    try {
+      await execAsync('node scripts/build-service-worker.js');
+    } catch (error) {
+      console.error('Failed to build service worker:', error);
+    }
+  }
+});
 
 export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
+    buildServiceWorkerPlugin(),
     ...(mode === 'production' ? [VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
@@ -48,7 +65,19 @@ export default defineConfig(({ mode }) => ({
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '/',
-        scope: '/'
+        scope: '/',
+        icons: [
+          {
+            src: '/icons/icon-192x192.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: '/icons/icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          }
+        ]
       }
     })] : [])
   ],

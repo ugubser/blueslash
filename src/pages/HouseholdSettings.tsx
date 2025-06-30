@@ -7,6 +7,7 @@ import {
   removeMemberFromHousehold,
   updateHousehold 
 } from '../services/households';
+import NotificationSettings from '../components/NotificationSettings';
 
 const HouseholdSettings: React.FC = () => {
   const { user } = useAuth();
@@ -147,12 +148,25 @@ If something exceed any of these things, then it's 25 Gems.`;
   }
 
   if (!isHeadOfHousehold) {
+    // Non-head users can still access notification settings
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mario-card text-center py-12">
-          <p className="text-red-600">Only the head of household can access these settings.</p>
-          <p className="text-gray-600 mt-2">Current head: {household?.headOfHousehold || 'Unknown'}</p>
-          <p className="text-gray-600">Your ID: {user?.id || 'Unknown'}</p>
+        <div className="mb-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
+            Settings
+          </h1>
+        </div>
+
+        {/* Notification Settings - Available to all users */}
+        <NotificationSettings />
+        
+        <div className="mario-card mt-6 text-center py-8">
+          <p className="text-gray-600">
+            Only the head of household can access household management settings.
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Contact {members.find(m => m.id === household?.headOfHousehold)?.displayName || 'the head of household'} for household management.
+          </p>
         </div>
       </div>
     );
@@ -237,6 +251,11 @@ If something exceed any of these things, then it's 25 Gems.`;
           </div>
         </div>
       )}
+
+      {/* Notification Settings - Available to all users */}
+      <div className="mb-6">
+        <NotificationSettings />
+      </div>
 
       {/* Invite Link Section - Only for Head of Household */}
       {isHeadOfHousehold && (
