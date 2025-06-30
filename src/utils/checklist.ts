@@ -4,53 +4,111 @@ import type { ChecklistGroup } from '../types';
 export const parseMarkdownChecklist = (description: string): ChecklistGroup[] => {
   const lines = description.split('\n');
   const groups: ChecklistGroup[] = [];
-  let currentGroup: ChecklistGroup | null = null;
-  let contextLines: string[] = [];
-
   const checklistRegex = /^[\s]*[-*]\s*\[(\s|x|X)\]\s*(.+)$/;
 
-  for (const line of lines) {
-    const match = line.match(checklistRegex);
-    
-    if (match) {
-      // This is a checklist item
-      if (!currentGroup) {
-        // Start a new group
-        currentGroup = {
-          id: uuidv4(),
-          items: [],
-          ...(contextLines.length > 0 && { contextBefore: contextLines.join('\n').trim() })
-        };
-        contextLines = [];
-      }
+  // First, identify all checklist item positions
+  const checklistItemPositions: number[] = [];
+  lines.forEach((line, index) => {
+    if (checklistRegex.test(line)) {
+      checklistItemPositions.push(index);
+    }
+  });
 
+  if (checklistItemPositions.length === 0) {
+    return groups;
+  }
+
+  // Group consecutive checklist items
+  const checklistGroups: number[][] = [];
+  let currentGroup: number[] = [checklistItemPositions[0]];
+
+  for (let i = 1; i < checklistItemPositions.length; i++) {
+    const currentPos = checklistItemPositions[i];
+    const prevPos = checklistItemPositions[i - 1];
+    
+    // Check if there are only empty lines between these positions
+    let onlyEmptyBetween = true;
+    for (let j = prevPos + 1; j < currentPos; j++) {
+      if (lines[j].trim() !== '') {
+        onlyEmptyBetween = false;
+        break;
+      }
+    }
+    
+    if (onlyEmptyBetween) {
+      // Part of the same group
+      currentGroup.push(currentPos);
+    } else {
+      // Start a new group
+      checklistGroups.push(currentGroup);
+      currentGroup = [currentPos];
+    }
+  }
+  checklistGroups.push(currentGroup);
+
+  // Now create ChecklistGroup objects with context
+  checklistGroups.forEach((groupPositions, groupIndex) => {
+    const firstPos = groupPositions[0];
+    const lastPos = groupPositions[groupPositions.length - 1];
+    
+    // Get context before (only the immediate line before)
+    let contextBefore = '';
+    if (firstPos > 0) {
+      const lineBeforePos = firstPos - 1;
+      const lineBefore = lines[lineBeforePos];
+      if (lineBefore.trim() !== '') {
+        contextBefore = lineBefore;
+      }
+    }
+    
+    // Get context after (until next checklist group or end)
+    let contextAfter = '';
+    const nextGroupStartPos = groupIndex < checklistGroups.length - 1 
+      ? checklistGroups[groupIndex + 1][0] 
+      : lines.length;
+    
+    const contextAfterLines: string[] = [];
+    for (let i = lastPos + 1; i < nextGroupStartPos; i++) {
+      const line = lines[i];
+      // Stop if we hit the context line for the next group
+      if (i === nextGroupStartPos - 1 && line.trim() !== '') {
+        break;
+      }
+      contextAfterLines.push(line);
+    }
+    
+    // Remove trailing empty lines from contextAfter
+    while (contextAfterLines.length > 0 && contextAfterLines[contextAfterLines.length - 1].trim() === '') {
+      contextAfterLines.pop();
+    }
+    
+    if (contextAfterLines.length > 0) {
+      contextAfter = contextAfterLines.join('\n');
+    }
+
+    // Create the items
+    const items = groupPositions.map(pos => {
+      const line = lines[pos];
+      const match = line.match(checklistRegex)!;
       const isCompleted = match[1].toLowerCase() === 'x';
       const text = match[2].trim();
       
-      currentGroup.items.push({
+      return {
         id: uuidv4(),
         text,
         completed: isCompleted
-      });
-    } else {
-      // This is not a checklist item
-      if (currentGroup && currentGroup.items.length > 0) {
-        // Finish the current group and start collecting context for the next
-        groups.push(currentGroup);
-        currentGroup = null;
-      }
-      
-      // Collect context lines (skip empty lines at the start of context)
-      if (line.trim() !== '' || contextLines.length > 0) {
-        contextLines.push(line);
-      }
-    }
-  }
+      };
+    });
 
-  // Don't forget the last group if it exists
-  if (currentGroup && currentGroup.items.length > 0) {
-    groups.push(currentGroup);
-  }
+    const group: ChecklistGroup = {
+      id: uuidv4(),
+      items,
+      ...(contextBefore && { contextBefore }),
+      ...(contextAfter && { contextAfter })
+    };
+
+    groups.push(group);
+  });
 
   return groups;
 };
@@ -67,27 +125,58 @@ export const renderDescriptionWithoutChecklist = (description: string): string =
     return description;
   }
 
-  // Build description from context parts only
-  let result = '';
+  // Build description excluding checklist items AND their context lines
   const lines = description.split('\n');
   const checklistRegex = /^[\s]*[-*]\s*\[(\s|x|X)\]\s*(.+)$/;
+  const excludeLines = new Set<number>();
   
-  for (const line of lines) {
-    if (!checklistRegex.test(line)) {
-      result += line + '\n';
+  // Mark all checklist-related lines for exclusion
+  lines.forEach((line, index) => {
+    if (checklistRegex.test(line)) {
+      excludeLines.add(index);
     }
-  }
+  });
   
-  return result.trim();
+  // Mark context lines for exclusion
+  groups.forEach(group => {
+    if (group.contextBefore) {
+      const contextIndex = lines.findIndex(line => line === group.contextBefore);
+      if (contextIndex !== -1) {
+        excludeLines.add(contextIndex);
+      }
+    }
+    if (group.contextAfter) {
+      const contextAfterLines = group.contextAfter.split('\n');
+      contextAfterLines.forEach(contextLine => {
+        const contextIndex = lines.findIndex(line => line === contextLine);
+        if (contextIndex !== -1) {
+          excludeLines.add(contextIndex);
+        }
+      });
+    }
+  });
+  
+  // Build result with remaining lines
+  const resultLines: string[] = [];
+  lines.forEach((line, index) => {
+    if (!excludeLines.has(index)) {
+      resultLines.push(line);
+    }
+  });
+  
+  return resultLines.join('\n').trim();
 };
 
 export const generateMarkdownFromChecklist = (groups: ChecklistGroup[]): string => {
   return groups.map(group => {
     let result = '';
     if (group.contextBefore) {
-      result += group.contextBefore + '\n\n';
+      result += group.contextBefore + '\n';
     }
     result += group.items.map(item => `- [${item.completed ? 'x' : ' '}] ${item.text}`).join('\n');
+    if (group.contextAfter) {
+      result += '\n' + group.contextAfter;
+    }
     return result;
   }).join('\n\n');
 };

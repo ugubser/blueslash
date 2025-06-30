@@ -49,6 +49,7 @@ export interface ChecklistGroup {
   id: string;
   items: ChecklistItem[];
   contextBefore?: string;
+  contextAfter?: string;
 }
 
 export interface Task {

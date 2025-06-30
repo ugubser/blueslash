@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckSquare, Square } from 'lucide-react';
+import MarkdownRenderer from './MarkdownRenderer';
 import type { ChecklistGroup } from '../types';
 
 interface TaskChecklistProps {
@@ -26,9 +27,7 @@ const TaskChecklist: React.FC<TaskChecklistProps> = ({ groups, canEdit, onItemTo
         <div key={group.id} className="bg-gray-50 border-2 border-gray-200 rounded-lg p-4">
           {group.contextBefore && (
             <div className="text-sm text-gray-600 mb-3 leading-relaxed">
-              {group.contextBefore.split('\n').map((line, index) => (
-                <p key={index} className={line.trim() === '' ? 'h-2' : ''}>{line}</p>
-              ))}
+              <MarkdownRenderer content={group.contextBefore} />
             </div>
           )}
           
@@ -66,6 +65,12 @@ const TaskChecklist: React.FC<TaskChecklistProps> = ({ groups, canEdit, onItemTo
               </div>
             ))}
           </div>
+          
+          {group.contextAfter && (
+            <div className="text-sm text-gray-600 mt-3 leading-relaxed">
+              <MarkdownRenderer content={group.contextAfter} />
+            </div>
+          )}
         </div>
       ))}
       

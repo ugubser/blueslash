@@ -6,6 +6,7 @@ import { useHousehold } from '../hooks/useHousehold';
 import { updateTaskStatus, verifyTask, createRecurringTask, deleteTask, updateTaskChecklist } from '../services/tasks';
 import { parseMarkdownChecklist, hasChecklistItems, renderDescriptionWithoutChecklist } from '../utils/checklist';
 import TaskChecklist from './TaskChecklist';
+import MarkdownRenderer from './MarkdownRenderer';
 
 interface TaskCardProps {
   task: Task;
@@ -200,12 +201,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask }) => {
         {getStatusBadge()}
       </div>
 
-      <p className="text-gray-600 text-sm mb-4 leading-relaxed font-normal">
-        {hasChecklistItems(task.description) 
-          ? renderDescriptionWithoutChecklist(task.description)
-          : task.description
-        }
-      </p>
+      <div className="text-gray-600 text-sm mb-4 leading-relaxed font-normal">
+        <MarkdownRenderer
+          content={hasChecklistItems(task.description) 
+            ? renderDescriptionWithoutChecklist(task.description)
+            : task.description
+          }
+        />
+      </div>
 
       {checklistGroups.length > 0 && (
         <TaskChecklist
