@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "tsc -b && vite build --mode emulator",
-    "build:prod": "tsc -b && vite build --mode production",
+    "build": "tsc -b && vite build --mode emulator node scripts/process-messaging-sw.js --mode emulator",
+    "build:prod": "tsc -b && vite build --mode production && node scripts/process-messaging-sw.js --mode production",
     "lint": "eslint .",
     "preview": "vite preview",
     "preview:emulator": "vite preview --mode emulator",
