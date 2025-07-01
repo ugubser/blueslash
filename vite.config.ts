@@ -6,14 +6,14 @@ import { promisify } from 'util'
 
 const execAsync = promisify(exec);
 
-// Custom plugin to build service worker after Vite build
-const buildServiceWorkerPlugin = () => ({
-  name: 'build-service-worker',
-  writeBundle: async () => {
+// Custom plugin to process Firebase messaging service worker
+const processMessagingPlugin = (mode: string) => ({
+  name: 'process-messaging-sw',
+  closeBundle: async () => {
     try {
-      await execAsync('node scripts/build-service-worker.js');
+      await execAsync(`node scripts/process-messaging-sw.js --mode ${mode}`);
     } catch (error) {
-      console.error('Failed to build service worker:', error);
+      console.error('Failed to process messaging service worker:', error);
     }
   }
 });
@@ -21,12 +21,14 @@ const buildServiceWorkerPlugin = () => ({
 export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
-    buildServiceWorkerPlugin(),
-    ...(mode === 'production' ? [VitePWA({
+    ...(mode === 'production' || mode === 'emulator' ? [VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
         enabled: false
       },
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         // Don't fallback on assets with hash (they're immutable)
@@ -79,7 +81,7 @@ export default defineConfig(({ mode }) => ({
           }
         ]
       }
-    })] : [])
+    }), processMessagingPlugin(mode)] : [])
   ],
   // Copy static assets including notification icons
   assetsInclude: ['**/*.png', '**/*.svg'],

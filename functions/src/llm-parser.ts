@@ -5,7 +5,6 @@ config();
 import { OpenAI } from 'openai';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as functions from 'firebase-functions';
 
 // Default values
 let openRouterKey: string | undefined;
@@ -37,17 +36,12 @@ function loadApiKey(): string | undefined {
   return undefined;
 }
 
-// 1. Try to get config from Firebase Functions config
+// 1. Try to get config from Firebase Functions config (deprecated in v2)
 function loadKeyFromFirebaseFunctionsConfig(): string | undefined {
   try {
-    const config = functions.config();
-    if (config.openrouter && config.openrouter.api_key) {
-      //console.log('Found OpenRouter config in Firebase Functions config');
-      openRouterModel = config.openrouter.model || openRouterModel;
-      return config.openrouter.api_key;
-    } else {
-      console.log('No OpenRouter config found in Firebase Functions config');
-    }
+    // Skip deprecated functions.config() in Firebase Functions v2
+    console.log('Skipping deprecated functions.config() - using environment variables instead');
+    return undefined;
   } catch (error) {
     console.error('Error accessing Firebase Functions config:', error);
   }

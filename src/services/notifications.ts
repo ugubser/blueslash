@@ -74,25 +74,24 @@ export class NotificationService {
   private async getServiceWorkerRegistration(): Promise<ServiceWorkerRegistration | undefined> {
     if ('serviceWorker' in navigator) {
       try {
-        // Check if we already have a registration for messaging
-        const existingRegistration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
+        // Use the existing PWA service worker registration that includes Firebase messaging
+        const existingRegistration = await navigator.serviceWorker.getRegistration('/');
         if (existingRegistration && existingRegistration.active) {
-          console.log('Using existing messaging service worker');
+          console.log('Using existing PWA service worker with messaging');
           return existingRegistration;
         }
         
-        // Register the messaging service worker (config is injected at build time)
-        console.log('Registering messaging service worker');
-        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-          scope: '/',
-          updateViaCache: 'none'
-        });
-        
-        // Wait for the service worker to be ready
+        // In development or if no registration exists, wait for the service worker to be ready
         await navigator.serviceWorker.ready;
-        console.log('Messaging service worker ready');
+        const registration = await navigator.serviceWorker.getRegistration('/');
         
-        return registration;
+        if (registration) {
+          console.log('PWA service worker with messaging ready');
+          return registration;
+        }
+        
+        console.warn('No service worker registration found');
+        return undefined;
       } catch (error) {
         console.error('Service worker registration failed:', error);
         return undefined;
