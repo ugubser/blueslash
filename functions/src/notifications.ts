@@ -98,6 +98,51 @@ export async function sendPushNotification(
   }
 }
 
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const CATCH_UP_DELAY_MINUTES = 5;
+
+const toDate = (value: any): Date => {
+  if (!value) {
+    return new Date();
+  }
+  if (value instanceof Date) {
+    return value;
+  }
+  if (typeof value.toDate === 'function') {
+    return value.toDate();
+  }
+  return new Date(value);
+};
+
+const getFriendlyDueText = (now: Date, dueDate: Date): string => {
+  const diffMs = dueDate.getTime() - now.getTime();
+
+  if (diffMs <= 0) {
+    return 'now';
+  }
+
+  const diffHours = diffMs / (60 * 60 * 1000);
+  if (diffHours < 1) {
+    return 'within the next hour';
+  }
+
+  if (diffHours < 6) {
+    const roundedHours = Math.round(diffHours);
+    return `in about ${roundedHours} hour${roundedHours === 1 ? '' : 's'}`;
+  }
+
+  if (diffHours < 24) {
+    return 'later today';
+  }
+
+  if (diffHours < 48) {
+    return 'tomorrow';
+  }
+
+  const diffDays = Math.ceil(diffHours / 24);
+  return `in ${diffDays} days`;
+};
+
 // Schedule notifications when a task is claimed
 export const scheduleTaskReminders = onDocumentUpdated('tasks/{taskId}', async (event) => {
   const change = event.data;
@@ -109,7 +154,10 @@ export const scheduleTaskReminders = onDocumentUpdated('tasks/{taskId}', async (
 
   // Check if task was just claimed (status changed from published to claimed)
   if (before.status !== 'claimed' && after.status === 'claimed' && after.claimedBy) {
-    const dueDate = after.dueDate.toDate();
+    const dueDateRaw = toDate(after.dueDate);
+    const dueDate = new Date(dueDateRaw);
+    // Treat due dates as end-of-day to better align with user expectations when only a date is supplied
+    dueDate.setHours(23, 59, 0, 0);
     const now = new Date();
 
     console.log(`Task ${taskId} was claimed by ${after.claimedBy}, scheduling reminders`);
@@ -118,6 +166,7 @@ export const scheduleTaskReminders = onDocumentUpdated('tasks/{taskId}', async (
     // Calculate reminder dates: 7 days, 4 days, 2 days, 1 day before due date
     const reminderDays = [7, 4, 2, 1];
     const reminders = [];
+    let catchUpScheduled = false;
 
     for (const days of reminderDays) {
       const reminderDate = new Date(dueDate);
@@ -134,10 +183,31 @@ export const scheduleTaskReminders = onDocumentUpdated('tasks/{taskId}', async (
           reminderDate,
           daysUntilDue: days,
           taskTitle: after.title,
-          householdId: after.householdId
+          householdId: after.householdId,
+          dueDate,
+          isCatchUp: false
         });
       } else {
         console.log(`❌ Skipping reminder for ${days} days before (date has passed)`);
+
+        // If the reminder would have fired in the past but the task is still pending, schedule an immediate catch-up reminder
+        if (!catchUpScheduled && dueDate > now) {
+          const catchUpDate = new Date(now.getTime() + CATCH_UP_DELAY_MINUTES * 60 * 1000);
+          const daysRemaining = Math.max(0, Math.floor((dueDate.getTime() - now.getTime()) / DAY_IN_MS));
+
+          console.log(`⚠️  Scheduling catch-up reminder for task ${taskId} at ${catchUpDate}`);
+          reminders.push({
+            taskId,
+            userId: after.claimedBy,
+            reminderDate: catchUpDate,
+            daysUntilDue: daysRemaining,
+            taskTitle: after.title,
+            householdId: after.householdId,
+            dueDate,
+            isCatchUp: true
+          });
+          catchUpScheduled = true;
+        }
       }
     }
 
@@ -233,20 +303,19 @@ async function processScheduledNotifications() {
     const notificationData = doc.data() as any;
 
     // Helper function to get friendly time description
-    const getTimeText = (days: number) => {
-      if (days === 1) return 'tomorrow';
-      if (days === 2) return 'in 2 days';
-      return `in ${days} days`;
-    };
+    const dueDate = toDate(notificationData.dueDate);
+    const timeText = getFriendlyDueText(now, dueDate);
 
     const payload: NotificationPayload = {
       title: 'Task Reminder',
-      body: `"${notificationData.taskTitle}" is due ${getTimeText(notificationData.daysUntilDue)}!`,
+      body: `"${notificationData.taskTitle}" is due ${timeText}!`,
       data: {
         taskId: notificationData.taskId,
         type: 'task-reminder',
         daysUntilDue: notificationData.daysUntilDue,
-        householdId: notificationData.householdId
+        householdId: notificationData.householdId,
+        dueDate: dueDate.toISOString(),
+        isCatchUp: notificationData.isCatchUp ? 'true' : 'false'
       },
       requireInteraction: true
     };
