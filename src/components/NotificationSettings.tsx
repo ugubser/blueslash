@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Bell, BellOff, CheckCircle, AlertCircle, Loader, TestTube } from 'lucide-react';
 import { useNotifications } from '../hooks/useNotifications';
 import { useAuth } from '../hooks/useAuth';
@@ -6,7 +6,11 @@ import { httpsCallable } from 'firebase/functions';
 import { functions } from '../services/firebase';
 import type { NotificationPreferences } from '../types';
 
-const NotificationSettings: React.FC = () => {
+interface NotificationSettingsProps {
+  showTestingControls?: boolean;
+}
+
+const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTestingControls = true }) => {
   const { user } = useAuth();
   const {
     hasPermission,
@@ -20,10 +24,60 @@ const NotificationSettings: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [testingNotifications, setTestingNotifications] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const updateViewport = () => {
+      setIsMobileViewport(window.matchMedia('(max-width: 640px)').matches);
+    };
+
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
+    return () => window.removeEventListener('resize', updateViewport);
+  }, []);
 
   React.useEffect(() => {
     setLocalPreferences(preferences);
   }, [preferences]);
+
+  const renderToggleControl = useMemo(() => {
+    return (options: {
+      id?: string;
+      checked: boolean;
+      disabled?: boolean;
+      onChange: (value: boolean) => void;
+    }) => {
+      const { id, checked, disabled, onChange } = options;
+
+      if (isMobileViewport) {
+        return (
+          <button
+            type="button"
+            onClick={() => !disabled && onChange(!checked)}
+            disabled={disabled}
+            className={`w-full sm:w-auto px-4 py-2 border-2 rounded-lg font-semibold transition-colors ${checked ? 'bg-mario-green text-white border-mario-green' : 'bg-gray-100 text-gray-600 border-gray-200'} ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:brightness-105'}`}
+          >
+            {checked ? 'On' : 'Off'}
+          </button>
+        );
+      }
+
+      return (
+        <label className="mario-toggle" htmlFor={id}>
+          <input
+            id={id}
+            type="checkbox"
+            checked={checked}
+            onChange={(event) => onChange(event.target.checked)}
+            disabled={disabled}
+          />
+          <span className={`mario-toggle-slider ${disabled ? 'opacity-50' : ''}`}></span>
+        </label>
+      );
+    };
+  }, [isMobileViewport]);
 
   const handlePermissionRequest = async () => {
     try {
@@ -120,8 +174,8 @@ const NotificationSettings: React.FC = () => {
 
       {/* Permission Status */}
       <div className="mb-6 p-4 rounded-lg border-2 border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-center sm:text-left">
+          <div className="flex items-center justify-center sm:justify-start gap-3">
             {hasPermission ? (
               <>
                 <CheckCircle className="text-green-500" size={20} />
@@ -139,7 +193,7 @@ const NotificationSettings: React.FC = () => {
             <button
               onClick={handlePermissionRequest}
               disabled={isLoading}
-              className="mario-button-green text-sm px-4 py-2 flex items-center gap-2"
+              className="mario-button-green text-sm px-4 py-2 flex items-center gap-2 mx-auto sm:mx-0"
             >
               {isLoading ? (
                 <>
@@ -169,7 +223,7 @@ const NotificationSettings: React.FC = () => {
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Notification Types</h3>
           
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
               <div>
                 <label htmlFor="push-notifications" className="font-medium text-gray-700">
                   Push Notifications
@@ -178,18 +232,14 @@ const NotificationSettings: React.FC = () => {
                   Receive notifications in your browser or device
                 </p>
               </div>
-              <label className="mario-toggle">
-                <input
-                  id="push-notifications"
-                  type="checkbox"
-                  checked={localPreferences.push}
-                  onChange={(e) => handlePreferenceChange('push', e.target.checked)}
-                />
-                <span className="mario-toggle-slider"></span>
-              </label>
+              {renderToggleControl({
+                id: 'push-notifications',
+                checked: localPreferences.push,
+                onChange: (value) => handlePreferenceChange('push', value),
+              })}
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
               <div>
                 <label htmlFor="task-reminders" className="font-medium text-gray-700">
                   Task Reminders
@@ -198,19 +248,15 @@ const NotificationSettings: React.FC = () => {
                   Get reminded about due dates (7, 4, 2, 1 days before)
                 </p>
               </div>
-              <label className="mario-toggle">
-                <input
-                  id="task-reminders"
-                  type="checkbox"
-                  checked={localPreferences.taskReminders}
-                  onChange={(e) => handlePreferenceChange('taskReminders', e.target.checked)}
-                  disabled={!localPreferences.push}
-                />
-                <span className="mario-toggle-slider"></span>
-              </label>
+              {renderToggleControl({
+                id: 'task-reminders',
+                checked: localPreferences.taskReminders,
+                disabled: !localPreferences.push,
+                onChange: (value) => handlePreferenceChange('taskReminders', value),
+              })}
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
               <div>
                 <label htmlFor="verification-requests" className="font-medium text-gray-700">
                   Verification Requests
@@ -219,19 +265,15 @@ const NotificationSettings: React.FC = () => {
                   Get notified when tasks need verification
                 </p>
               </div>
-              <label className="mario-toggle">
-                <input
-                  id="verification-requests"
-                  type="checkbox"
-                  checked={localPreferences.verificationRequests}
-                  onChange={(e) => handlePreferenceChange('verificationRequests', e.target.checked)}
-                  disabled={!localPreferences.push}
-                />
-                <span className="mario-toggle-slider"></span>
-              </label>
+              {renderToggleControl({
+                id: 'verification-requests',
+                checked: localPreferences.verificationRequests,
+                disabled: !localPreferences.push,
+                onChange: (value) => handlePreferenceChange('verificationRequests', value),
+              })}
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
               <div>
                 <label htmlFor="email-notifications" className="font-medium text-gray-700">
                   Email Notifications
@@ -240,16 +282,12 @@ const NotificationSettings: React.FC = () => {
                   Receive notifications via email (coming soon)
                 </p>
               </div>
-              <label className="mario-toggle">
-                <input
-                  id="email-notifications"
-                  type="checkbox"
-                  checked={localPreferences.email}
-                  onChange={(e) => handlePreferenceChange('email', e.target.checked)}
-                  disabled={true}
-                />
-                <span className="mario-toggle-slider opacity-50"></span>
-              </label>
+              {renderToggleControl({
+                id: 'email-notifications',
+                checked: localPreferences.email,
+                disabled: true,
+                onChange: (value) => handlePreferenceChange('email', value),
+              })}
             </div>
           </div>
 
@@ -277,14 +315,14 @@ const NotificationSettings: React.FC = () => {
           )}
 
           {/* Test Buttons */}
-          {hasPermission && (
+          {hasPermission && showTestingControls && (
             <div className="mt-6 pt-4 border-t border-gray-200">
               <h4 className="text-md font-semibold text-gray-800 mb-3">Test Notifications</h4>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleTestNotification}
                   disabled={testingNotifications}
-                  className="mario-button-green flex items-center gap-2 px-4 py-2 text-sm"
+                  className="mario-button-green flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm"
                 >
                   {testingNotifications ? (
                     <>
@@ -302,7 +340,7 @@ const NotificationSettings: React.FC = () => {
                 <button
                   onClick={handleTriggerScheduled}
                   disabled={testingNotifications}
-                  className="mario-button flex items-center gap-2 px-4 py-2 text-sm"
+                  className="mario-button flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm"
                 >
                   {testingNotifications ? (
                     <>

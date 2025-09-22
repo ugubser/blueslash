@@ -158,7 +158,7 @@ If something exceed any of these things, then it's 25 Gems.`;
         </div>
 
         {/* Notification Settings - Available to all users */}
-        <NotificationSettings />
+        <NotificationSettings showTestingControls={false} />
         
         <div className="mario-card mt-6 text-center py-8">
           <p className="text-gray-600">
@@ -254,7 +254,7 @@ If something exceed any of these things, then it's 25 Gems.`;
 
       {/* Notification Settings - Available to all users */}
       <div className="mb-6">
-        <NotificationSettings />
+        <NotificationSettings showTestingControls={isHeadOfHousehold} />
       </div>
 
       {/* Invite Link Section - Only for Head of Household */}
