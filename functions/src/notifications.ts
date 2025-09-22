@@ -3,6 +3,17 @@ import { onCall } from 'firebase-functions/v2/https';
 import { onDocumentUpdated } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 
+const ALLOWED_CORS_ORIGINS = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:5003',
+  'http://127.0.0.1:5003',
+  'https://blueslash-7bcdd.web.app',
+  'https://blueslash-7bcdd.firebaseapp.com',
+  'https://blueslash.tribecans.com',
+  /^https:\/\/192\.168\.\d+\.\d+:(5173|5003)$/,
+];
+
 // Initialize Firebase Admin if not already initialized
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -349,13 +360,17 @@ export const sendScheduledNotifications = onSchedule('0 * * * *', async (event) 
 });
 
 // Manual trigger for testing scheduled notifications
-export const triggerScheduledNotifications = onCall(async (request) => {
+export const triggerScheduledNotifications = onCall({
+  cors: ALLOWED_CORS_ORIGINS,
+}, async (request) => {
   console.log('🧪 Manual trigger for scheduled notifications');
   return await processScheduledNotifications();
 });
 
 // Test function to send a notification immediately (for debugging)
-export const sendTestNotification = onCall(async (request) => {
+export const sendTestNotification = onCall({
+  cors: ALLOWED_CORS_ORIGINS,
+}, async (request) => {
   // Validate required parameters
   if (!request.data) {
     throw new Error('Request data is required');
