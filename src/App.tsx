@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { HouseholdProvider, useHousehold } from './hooks/useHousehold';
 import Header from './components/Header';
+import MobileInstallPrompt from './components/MobileInstallPrompt';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import HouseholdSetup from './pages/HouseholdSetup';
@@ -66,6 +67,7 @@ const AuthenticatedRoutes: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600">
+      <MobileInstallPrompt />
       <Header />
       <Routes>
         <Route path="/dashboard" element={<Dashboard />} />
