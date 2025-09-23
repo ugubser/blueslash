@@ -65,16 +65,18 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
       }
 
       return (
-        <label className="mario-toggle" htmlFor={id}>
-          <input
-            id={id}
-            type="checkbox"
-            checked={checked}
-            onChange={(event) => onChange(event.target.checked)}
-            disabled={disabled}
-          />
-          <span className={`mario-toggle-slider ${disabled ? 'opacity-50' : ''}`}></span>
-        </label>
+        <div className="flex w-full sm:w-auto sm:justify-end">
+          <label className="mario-toggle ml-auto" htmlFor={id}>
+            <input
+              id={id}
+              type="checkbox"
+              checked={checked}
+              onChange={(event) => onChange(event.target.checked)}
+              disabled={disabled}
+            />
+            <span className={`mario-toggle-slider ${disabled ? 'opacity-50' : ''}`}></span>
+          </label>
+        </div>
       );
     };
   }, [isMobileViewport]);
@@ -166,7 +168,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
   };
 
   return (
-    <div className="bg-white rounded-lg border-4 border-mario-blue shadow-lg p-6">
+    <div className="bg-white rounded-lg border-4 border-mario-blue shadow-lg p-6 sm:p-8">
       <div className="flex items-center gap-3 mb-6">
         <Bell className="text-mario-blue" size={24} />
         <h2 className="text-xl font-bold text-gray-800">Notification Settings</h2>

@@ -149,24 +149,6 @@
     @apply animate-spin rounded-full h-8 w-8 border-4 border-mario-blue border-t-transparent;
   }
 
-  .notification-toast {
-    @apply fixed top-4 right-4 bg-white border-2 border-mario-green rounded-lg p-4 shadow-lg;
-    @apply transform transition-all duration-300 ease-in-out;
-    z-index: 1000;
-  }
-
-  .notification-toast.success {
-    @apply border-mario-green bg-green-50;
-  }
-
-  .notification-toast.error {
-    @apply border-mario-red bg-red-50;
-  }
-
-  .notification-toast.warning {
-    @apply border-mario-yellow bg-yellow-50;
-  }
-
   .mario-toggle {
     @apply relative inline-block w-12 h-6;
   }
@@ -228,14 +210,4 @@
 @keyframes glow {
   0% { box-shadow: 0 0 5px theme(colors.mario.yellow); }
   100% { box-shadow: 0 0 20px theme(colors.mario.yellow), 0 0 30px theme(colors.mario.yellow); }
-}
-
-@keyframes power-up {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
-}
-
-.power-up-animation {
-  animation: power-up 0.3s ease-in-out;
 }

@@ -21,48 +21,49 @@ const Header: React.FC = () => {
     <header className="bg-white border-b-4 border-mario-blue shadow-lg">
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
         {/* Desktop Layout */}
-        <div className="hidden xl:flex justify-between items-center h-16">
-          <div className="flex items-center gap-6">
+        <div className="hidden xl:flex items-center justify-between h-20 gap-8">
+          <div className="flex items-center gap-8">
             <Link to="/dashboard" className="text-2xl font-bold text-mario-blue hover:text-mario-blue-dark transition-colors">
               BlueSlash
             </Link>
-            <HouseholdSwitcher />
+            <div className="flex items-center gap-4">
+              <HouseholdSwitcher />
+              <nav className="flex items-center gap-3">
+                <Link
+                  to="/dashboard"
+                  className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors ${
+                    location.pathname === '/dashboard'
+                      ? 'bg-mario-blue text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  to={location.pathname === '/household-settings' ? '/dashboard' : '/household-settings'}
+                  className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 ${
+                    location.pathname === '/household-settings'
+                      ? 'bg-mario-blue text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Settings size={14} />
+                  Settings
+                </Link>
+              </nav>
+            </div>
           </div>
 
-          <nav className="flex items-center gap-6">
-            <Link
-              to="/dashboard"
-              className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors ${
-                location.pathname === '/dashboard' 
-                  ? 'bg-mario-blue text-white' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Dashboard
-            </Link>
-            <Link
-              to={location.pathname === '/household-settings' ? '/dashboard' : '/household-settings'}
-              className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 ${
-                location.pathname === '/household-settings' 
-                  ? 'bg-mario-blue text-white' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Settings size={14} />
-              Settings
-            </Link>
-          </nav>
-
           {user && (
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-5">
               <div className="gem-counter">
                 <Coins className="coin-icon" size={20} />
                 <span>{user.gems.toLocaleString()}</span>
               </div>
-              
+
               <div className="flex items-center gap-3 text-sm">
                 <User size={16} />
-                <span className="text-gray-700">{user.displayName}</span>
+                <span className="text-gray-700 whitespace-nowrap">{user.displayName}</span>
                 <span className="power-up-badge text-xs">
                   {getCurrentUserRole() === 'head' ? '👑 HEAD' : '👤 MEMBER'}
                 </span>
@@ -70,68 +71,9 @@ const Header: React.FC = () => {
 
               <button
                 onClick={signOut}
-                className="mario-button-blue flex items-center gap-2 text-xs px-4 py-2 ml-2"
+                className="mario-button-blue flex items-center gap-2 text-xs px-4 py-2 h-11"
               >
                 <LogOut size={14} />
-                Sign Out
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Tablet Layout - Compact Single Line (removed, now uses mobile layout) */}
-        <div className="hidden xl:flex justify-between items-center h-16" style={{display: 'none'}}>
-          <div className="flex items-center gap-4">
-            <Link to="/dashboard" className="text-xl font-bold text-mario-blue hover:text-mario-blue-dark transition-colors">
-              BlueSlash
-            </Link>
-            <HouseholdSwitcher />
-          </div>
-
-          <nav className="flex items-center gap-3">
-            <Link
-              to="/dashboard"
-              className={`px-3 py-2 rounded-lg font-bold text-sm transition-colors ${
-                location.pathname === '/dashboard' 
-                  ? 'bg-mario-blue text-white' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Dashboard
-            </Link>
-            <Link
-              to={location.pathname === '/household-settings' ? '/dashboard' : '/household-settings'}
-              className={`px-3 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-1 ${
-                location.pathname === '/household-settings' 
-                  ? 'bg-mario-blue text-white' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Settings size={14} />
-              Settings
-            </Link>
-          </nav>
-
-          {user && (
-            <div className="flex items-center gap-3">
-              <div className="gem-counter text-sm">
-                <Coins className="coin-icon" size={18} />
-                <span>{user.gems.toLocaleString()}</span>
-              </div>
-              
-              <div className="flex items-center gap-2 text-sm">
-                <User size={14} />
-                <span className="text-gray-700 truncate max-w-20">{user.displayName}</span>
-                <span className="power-up-badge text-xs">
-                  {getCurrentUserRole() === 'head' ? '👑' : '👤'}
-                </span>
-              </div>
-
-              <button
-                onClick={signOut}
-                className="mario-button-blue flex items-center gap-1 text-xs px-3 py-2"
-              >
-                <LogOut size={12} />
                 Sign Out
               </button>
             </div>

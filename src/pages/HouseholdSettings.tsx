@@ -128,7 +128,7 @@ If something exceed any of these things, then it's 25 Gems.`;
 
   if (!user) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-10 py-8">
         <div className="mario-card text-center py-12">
           <p className="text-red-600">No user found. Please log in.</p>
         </div>
@@ -138,7 +138,7 @@ If something exceed any of these things, then it's 25 Gems.`;
 
   if (!household) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-10 py-8">
         <div className="mario-card text-center py-12">
           <div className="loading-spinner w-12 h-12 mx-auto mb-4" />
           <p className="text-gray-600">Loading household...</p>
@@ -150,7 +150,7 @@ If something exceed any of these things, then it's 25 Gems.`;
   if (!isHeadOfHousehold) {
     // Non-head users can still access notification settings
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-10 py-8">
         <div className="mb-4">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
             Settings
@@ -176,7 +176,7 @@ If something exceed any of these things, then it's 25 Gems.`;
   try {
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-10 py-8">
       <div className="mb-4">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
           Household Settings
@@ -397,7 +397,7 @@ If something exceed any of these things, then it's 25 Gems.`;
   } catch (error) {
     console.error('HouseholdSettings render error:', error);
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-10 py-8">
         <div className="mario-card text-center py-12">
           <p className="text-red-600">Error loading household settings</p>
           <p className="text-gray-600 mt-2">Please try refreshing the page</p>
