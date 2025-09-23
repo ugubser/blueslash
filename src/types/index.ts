@@ -100,6 +100,7 @@ export interface GemTransaction {
 export interface NotificationPreferences {
   email: boolean;
   push: boolean;
+  newTasks: boolean;
   taskReminders: boolean;
   verificationRequests: boolean;
 }

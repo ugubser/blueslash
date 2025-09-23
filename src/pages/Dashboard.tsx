@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Plus, Filter, Clock, Play, CheckCircle, ShieldCheck, FileText } from 'lucide-react';
 import TaskCard from '../components/TaskCard';
 import CreateTaskForm from '../components/CreateTaskForm';
@@ -6,15 +6,20 @@ import Leaderboard from '../components/Leaderboard';
 import { useHouseholdTasks } from '../hooks/useTasks';
 import { useAuth } from '../hooks/useAuth';
 import type { TaskStatus, Task } from '../types';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [activeFilters, setActiveFilters] = useState<Set<TaskStatus>>(
     new Set(['published', 'claimed', 'completed', 'draft'])
   );
   const { tasks, loading } = useHouseholdTasks();
+  const [pendingFocusTask, setPendingFocusTask] = useState<{ id: string; status?: TaskStatus } | null>(null);
+  const [highlightTaskId, setHighlightTaskId] = useState<string | null>(null);
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
@@ -38,7 +43,7 @@ const Dashboard: React.FC = () => {
     });
   };
 
-  const filteredTasks = tasks
+  const filteredTasks = useMemo(() => tasks
     .filter(task => activeFilters.has(task.status))
     .filter(task => {
       // Draft tasks should only be visible to their creator
@@ -46,7 +51,55 @@ const Dashboard: React.FC = () => {
         return task.creatorId === user?.id;
       }
       return true;
+    }), [tasks, activeFilters, user?.id]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const taskId = params.get('taskId');
+    const taskStatusParam = params.get('taskStatus');
+    const validStatuses: TaskStatus[] = ['draft', 'published', 'claimed', 'completed', 'verified'];
+    const taskStatus = validStatuses.includes(taskStatusParam as TaskStatus)
+      ? (taskStatusParam as TaskStatus)
+      : null;
+
+    if (taskId) {
+      if (taskStatus) {
+        setActiveFilters(prev => {
+          const next = new Set(prev);
+          next.add(taskStatus);
+          return next;
+        });
+      }
+
+      setPendingFocusTask({ id: taskId, status: taskStatus ?? undefined });
+    }
+  }, [location.search]);
+
+  useEffect(() => {
+    if (!pendingFocusTask || loading) {
+      return;
+    }
+
+    const elementId = `task-${pendingFocusTask.id}`;
+    const element = document.getElementById(elementId);
+
+    if (!element) {
+      return;
+    }
+
+    const focusId = pendingFocusTask.id;
+
+    requestAnimationFrame(() => {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setHighlightTaskId(focusId);
+      setPendingFocusTask(null);
+      navigate('/dashboard', { replace: true });
+
+      setTimeout(() => {
+        setHighlightTaskId(current => (current === focusId ? null : current));
+      }, 4000);
     });
+  }, [pendingFocusTask, loading, navigate, tasks]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -137,6 +190,7 @@ const Dashboard: React.FC = () => {
                   task={task}
                   onTaskUpdate={() => {}}
                   onEditTask={handleEditTask}
+                  isHighlighted={task.id === highlightTaskId}
                 />
               ))}
             </div>

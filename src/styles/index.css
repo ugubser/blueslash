@@ -63,6 +63,10 @@
     @apply hover:border-mario-blue cursor-pointer;
   }
 
+  .task-card.task-highlight {
+    @apply ring-4 ring-yellow-300 border-yellow-400;
+  }
+
   .task-card.claimed {
     @apply border-mario-orange bg-orange-50;
   }

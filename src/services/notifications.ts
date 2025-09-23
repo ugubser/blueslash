@@ -1,6 +1,20 @@
 import { getToken, onMessage, type MessagePayload } from 'firebase/messaging';
 import { doc, updateDoc } from 'firebase/firestore';
 import { messaging, db } from './firebase';
+import type { NotificationPreferences } from '../types';
+
+const buildTaskTargetUrl = (data?: Record<string, unknown>): string | null => {
+  if (!data || typeof data.taskId !== 'string') {
+    return null;
+  }
+
+  const params = new URLSearchParams({ taskId: data.taskId });
+  if (typeof data.taskStatus === 'string' && data.taskStatus.length > 0) {
+    params.set('taskStatus', data.taskStatus);
+  }
+
+  return `/dashboard?${params.toString()}`;
+};
 
 export interface NotificationPermissionResult {
   granted: boolean;
@@ -114,11 +128,7 @@ export class NotificationService {
     }
   }
 
-  async updateNotificationPreferences(userId: string, preferences: {
-    push: boolean;
-    taskReminders: boolean;
-    verificationRequests: boolean;
-  }): Promise<void> {
+  async updateNotificationPreferences(userId: string, preferences: NotificationPreferences): Promise<void> {
     try {
       const userRef = doc(db, 'users', userId);
       await updateDoc(userRef, {
@@ -137,12 +147,16 @@ export class NotificationService {
       
       // Show notification if app is in foreground
       if (payload.notification) {
+        const targetUrl = payload.data?.targetUrl || buildTaskTargetUrl(payload.data || {});
         this.showNotification(payload.notification.title || 'BlueSlash', {
           body: payload.notification.body,
           icon: payload.notification.icon || '/vite.svg',
           badge: '/vite.svg',
           tag: payload.data?.taskId || 'general',
-          data: payload.data
+          data: {
+            ...payload.data,
+            targetUrl,
+          }
         });
       }
     });
@@ -157,9 +171,9 @@ export class NotificationService {
         event.preventDefault();
         window.focus();
         
-        // Navigate to task if taskId is provided
-        if (options.data?.taskId) {
-          window.location.href = `/#/tasks/${options.data.taskId}`;
+        const targetUrl = options.data?.targetUrl || buildTaskTargetUrl(options.data);
+        if (targetUrl) {
+          window.location.href = targetUrl;
         }
         
         notification.close();

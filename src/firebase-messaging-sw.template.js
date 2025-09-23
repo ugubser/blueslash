@@ -17,17 +17,38 @@ firebase.initializeApp(firebaseConfig);
 
 const messaging = firebase.messaging();
 
+const buildTaskTargetUrl = (data = {}) => {
+  if (!data.taskId) {
+    return '/';
+  }
+
+  try {
+    const params = new URLSearchParams({ taskId: data.taskId });
+    if (data.taskStatus) {
+      params.set('taskStatus', data.taskStatus);
+    }
+    return `/dashboard?${params.toString()}`;
+  } catch (error) {
+    console.error('[firebase-messaging-sw.js] Failed to build task target URL:', error);
+    return '/';
+  }
+};
+
 // Handle background messages
 messaging.onBackgroundMessage(function(payload) {
   console.log('[firebase-messaging-sw.js] Received background message:', payload);
   
   const notificationTitle = payload.notification?.title || 'BlueSlash';
+  const targetUrl = buildTaskTargetUrl(payload.data);
   const notificationOptions = {
     body: payload.notification?.body || 'You have a new notification',
     icon: payload.notification?.icon || '/icon-192x192.png',
     badge: '/badge-72x72.png',
     tag: payload.data?.taskId || 'general',
-    data: payload.data,
+    data: {
+      ...payload.data,
+      targetUrl,
+    },
     actions: [
       {
         action: 'view',
@@ -61,19 +82,24 @@ self.addEventListener('notificationclick', function(event) {
       includeUncontrolled: true
     }).then(function(clientList) {
       const data = event.notification.data;
-      const url = data?.taskId ? `/#/tasks/${data.taskId}` : '/';
+      const targetUrl = data?.targetUrl || buildTaskTargetUrl(data);
       
       // Check if app is already open
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
-        if (client.url.includes(url) && 'focus' in client) {
+        if ('navigate' in client && targetUrl) {
+          client.navigate(targetUrl).catch((error) => {
+            console.error('[firebase-messaging-sw.js] Failed to navigate client:', error);
+          });
+        }
+        if ('focus' in client) {
           return client.focus();
         }
       }
       
       // Open new window if app is not open
-      if (clients.openWindow) {
-        return clients.openWindow(url);
+      if (clients.openWindow && targetUrl) {
+        return clients.openWindow(targetUrl);
       }
     })
   );

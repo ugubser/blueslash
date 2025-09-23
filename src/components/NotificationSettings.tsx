@@ -241,6 +241,23 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
               <div>
+                <label htmlFor="new-task-alerts" className="font-medium text-gray-700">
+                  New Task Alerts
+                </label>
+                <p className="text-sm text-gray-500">
+                  Get notified when a new task is published and ready to claim
+                </p>
+              </div>
+              {renderToggleControl({
+                id: 'new-task-alerts',
+                checked: localPreferences.newTasks,
+                disabled: !localPreferences.push,
+                onChange: (value) => handlePreferenceChange('newTasks', value),
+              })}
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
+              <div>
                 <label htmlFor="task-reminders" className="font-medium text-gray-700">
                   Task Reminders
                 </label>

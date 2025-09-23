@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
 import { onCall } from 'firebase-functions/v2/https';
-import { onDocumentUpdated } from 'firebase-functions/v2/firestore';
+import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 
 const ALLOWED_CORS_ORIGINS = [
@@ -32,10 +32,25 @@ interface NotificationPayload {
   requireInteraction?: boolean;
 }
 
+type NotificationPreferenceKey = 'taskReminders' | 'verificationRequests' | 'newTasks';
+
+interface SendNotificationOptions {
+  requiredPreferences?: NotificationPreferenceKey[];
+}
+
+const buildTaskTargetUrl = (taskId: string, taskStatus?: string): string => {
+  const params = new URLSearchParams({ taskId });
+  if (taskStatus) {
+    params.set('taskStatus', taskStatus);
+  }
+  return `/dashboard?${params.toString()}`;
+};
+
 // Send push notification to a specific user
 export async function sendPushNotification(
   userId: string,
-  payload: NotificationPayload
+  payload: NotificationPayload,
+  options: SendNotificationOptions = {}
 ): Promise<boolean> {
   try {
     // Get user's notification token
@@ -48,6 +63,22 @@ export async function sendPushNotification(
     }
 
     const token = userData.notificationToken;
+
+    const preferences = userData.notificationPreferences || {};
+    if (options.requiredPreferences && options.requiredPreferences.length > 0) {
+      const shouldSend = options.requiredPreferences.every((preference) => {
+        const value = preferences[preference];
+        if (preference === 'newTasks') {
+          return value !== false; // default to true when undefined
+        }
+        return Boolean(value);
+      });
+
+      if (!shouldSend) {
+        console.log(`User ${userId} opted out of ${options.requiredPreferences.join(', ')} notifications`);
+        return false;
+      }
+    }
 
     // Check if this is an emulator token
     if (token.startsWith('emulator-token-')) {
@@ -109,6 +140,63 @@ export async function sendPushNotification(
   }
 }
 
+async function notifyHouseholdAboutAvailableTask(taskId: string, taskData: any): Promise<void> {
+  try {
+    const householdId = taskData.householdId;
+    if (!householdId) {
+      console.warn(`Task ${taskId} is missing householdId, skipping availability notification`);
+      return;
+    }
+
+    const householdSnapshot = await admin.firestore().collection('households').doc(householdId).get();
+    if (!householdSnapshot.exists) {
+      console.warn(`Household ${householdId} not found for task ${taskId}`);
+      return;
+    }
+
+    const householdData = householdSnapshot.data() as { members?: string[] } | undefined;
+    const memberIds = householdData?.members || [];
+
+    const recipients = memberIds.filter((memberId) =>
+      memberId && memberId !== taskData.creatorId && memberId !== taskData.claimedBy
+    );
+
+    if (recipients.length === 0) {
+      console.log(`No recipients found for new task notification ${taskId}`);
+      return;
+    }
+
+    const targetUrl = buildTaskTargetUrl(taskId, 'published');
+
+    const payload: NotificationPayload = {
+      title: 'New Task Available',
+      body: `"${taskData.title}" is ready to claim.`,
+      data: {
+        taskId,
+        taskTitle: taskData.title,
+        taskStatus: 'published',
+        type: 'task-new',
+        householdId,
+        targetUrl,
+      },
+      requireInteraction: true,
+    };
+
+    const results = await Promise.allSettled(
+      recipients.map((userId) =>
+        sendPushNotification(userId, payload, { requiredPreferences: ['newTasks'] })
+      )
+    );
+
+    const sent = results.filter((result) => result.status === 'fulfilled' && result.value).length;
+    const skipped = recipients.length - sent;
+
+    console.log(`📨 Sent new task notification for task ${taskId} to ${sent} members (${skipped} skipped)`);
+  } catch (error) {
+    console.error(`Failed to send new task notification for task ${taskId}:`, error);
+  }
+}
+
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const CATCH_UP_DELAY_MINUTES = 5;
 
@@ -155,13 +243,28 @@ const getFriendlyDueText = (now: Date, dueDate: Date): string => {
 };
 
 // Schedule notifications when a task is claimed
-export const scheduleTaskReminders = onDocumentUpdated('tasks/{taskId}', async (event) => {
+export const scheduleTaskReminders = onDocumentWritten('tasks/{taskId}', async (event) => {
   const change = event.data;
   const taskId = event.params.taskId;
-  const before = change?.before.data();
-  const after = change?.after.data();
+  const before = change?.before.exists ? change.before.data() as any : undefined;
+  const after = change?.after.exists ? change.after.data() as any : undefined;
 
-  if (!before || !after) return;
+  if (!after) {
+    console.log(`Task ${taskId} deleted, skipping reminder scheduling`);
+    return;
+  }
+
+  const statusBefore = before?.status;
+  const statusAfter = after.status;
+
+  if (statusAfter === 'published' && statusBefore !== 'published') {
+    await notifyHouseholdAboutAvailableTask(taskId, after);
+  }
+
+  if (!before) {
+    // Nothing else to do on initial creation unless the task was claimed later
+    return;
+  }
 
   // Check if task was just claimed (status changed from published to claimed)
   if (before.status !== 'claimed' && after.status === 'claimed' && after.claimedBy) {
@@ -196,7 +299,8 @@ export const scheduleTaskReminders = onDocumentUpdated('tasks/{taskId}', async (
           taskTitle: after.title,
           householdId: after.householdId,
           dueDate,
-          isCatchUp: false
+          isCatchUp: false,
+          taskStatus: after.status,
         });
       } else {
         console.log(`❌ Skipping reminder for ${days} days before (date has passed)`);
@@ -215,7 +319,8 @@ export const scheduleTaskReminders = onDocumentUpdated('tasks/{taskId}', async (
             taskTitle: after.title,
             householdId: after.householdId,
             dueDate,
-            isCatchUp: true
+            isCatchUp: true,
+            taskStatus: after.status,
           });
           catchUpScheduled = true;
         }
@@ -317,22 +422,30 @@ async function processScheduledNotifications() {
     const dueDate = toDate(notificationData.dueDate);
     const timeText = getFriendlyDueText(now, dueDate);
 
+    const taskStatus = notificationData.taskStatus || 'claimed';
+    const targetUrl = buildTaskTargetUrl(notificationData.taskId, taskStatus);
+
     const payload: NotificationPayload = {
       title: 'Task Reminder',
       body: `"${notificationData.taskTitle}" is due ${timeText}!`,
       data: {
         taskId: notificationData.taskId,
+        taskTitle: notificationData.taskTitle,
+        taskStatus,
         type: 'task-reminder',
         daysUntilDue: notificationData.daysUntilDue,
         householdId: notificationData.householdId,
         dueDate: dueDate.toISOString(),
-        isCatchUp: notificationData.isCatchUp ? 'true' : 'false'
+        isCatchUp: notificationData.isCatchUp ? 'true' : 'false',
+        targetUrl,
       },
       requireInteraction: true
     };
 
     // Send notification
-    const sendPromise = sendPushNotification(notificationData.userId, payload);
+    const sendPromise = sendPushNotification(notificationData.userId, payload, {
+      requiredPreferences: ['taskReminders']
+    });
     sendPromises.push(sendPromise);
 
     // Mark as sent

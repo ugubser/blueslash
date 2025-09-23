@@ -12,9 +12,10 @@ interface TaskCardProps {
   task: Task;
   onTaskUpdate?: () => void;
   onEditTask?: (task: Task) => void;
+  isHighlighted?: boolean;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask, isHighlighted = false }) => {
   const { user } = useAuth();
   const { members } = useHousehold();
   const [checklistGroups, setChecklistGroups] = useState<ChecklistGroup[]>([]);
@@ -179,8 +180,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask }) => {
   const canUnclaim = user && task.status === 'claimed' && task.claimedBy === user.id;
   const canCreateRecurring = user && task.recurrence && (task.status === 'verified' || task.status === 'completed');
 
+  const cardClassName = `task-card ${task.status} ${isHighlighted ? 'task-highlight' : ''}`;
+
   return (
-    <div className={`task-card ${task.status}`}>
+    <div id={`task-${task.id}`} className={cardClassName}>
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">

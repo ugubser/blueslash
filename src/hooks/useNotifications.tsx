@@ -41,16 +41,25 @@ export const useNotifications = (): UseNotificationsReturn => {
 
   // Load user notification preferences
   useEffect(() => {
+    const defaults: NotificationPreferences = {
+      email: false,
+      push: false,
+      newTasks: true,
+      taskReminders: false,
+      verificationRequests: false,
+    };
+
     if (user?.notificationPreferences) {
-      setPreferences(user.notificationPreferences);
-    } else {
-      // Set default preferences - all disabled until user opts in
+      const existing = user.notificationPreferences as Partial<NotificationPreferences>;
       setPreferences({
-        email: false,
-        push: false,
-        taskReminders: false,
-        verificationRequests: false
+        email: existing.email ?? defaults.email,
+        push: existing.push ?? defaults.push,
+        newTasks: existing.newTasks ?? defaults.newTasks,
+        taskReminders: existing.taskReminders ?? defaults.taskReminders,
+        verificationRequests: existing.verificationRequests ?? defaults.verificationRequests,
       });
+    } else {
+      setPreferences(defaults);
     }
   }, [user]);
 
