@@ -8,7 +8,7 @@ import { useAuth } from '../hooks/useAuth';
 import type { TaskStatus, Task } from '../types';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-const Dashboard: React.FC = () => {
+const TaskBoard: React.FC = () => {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -93,7 +93,7 @@ const Dashboard: React.FC = () => {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setHighlightTaskId(focusId);
       setPendingFocusTask(null);
-      navigate('/dashboard', { replace: true });
+      navigate('/task-board', { replace: true });
 
       setTimeout(() => {
         setHighlightTaskId(current => (current === focusId ? null : current));
@@ -232,4 +232,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default TaskBoard;

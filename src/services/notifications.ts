@@ -13,7 +13,7 @@ const buildTaskTargetUrl = (data?: Record<string, unknown>): string | null => {
     params.set('taskStatus', data.taskStatus);
   }
 
-  return `/dashboard?${params.toString()}`;
+  return `/task-board?${params.toString()}`;
 };
 
 export interface NotificationPermissionResult {

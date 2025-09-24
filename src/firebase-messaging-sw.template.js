@@ -27,7 +27,7 @@ const buildTaskTargetUrl = (data = {}) => {
     if (data.taskStatus) {
       params.set('taskStatus', data.taskStatus);
     }
-    return `/dashboard?${params.toString()}`;
+    return `/task-board?${params.toString()}`;
   } catch (error) {
     console.error('[firebase-messaging-sw.js] Failed to build task target URL:', error);
     return '/';

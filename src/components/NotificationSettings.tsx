@@ -243,18 +243,35 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
               <div>
-                <label htmlFor="new-task-alerts" className="font-medium text-gray-700">
-                  New Task Alerts
+                <label htmlFor="task-alerts" className="font-medium text-gray-700">
+                  Task Board Alerts
                 </label>
                 <p className="text-sm text-gray-500">
                   Get notified when a new task is published and ready to claim
                 </p>
               </div>
               {renderToggleControl({
-                id: 'new-task-alerts',
-                checked: localPreferences.newTasks,
+                id: 'task-alerts',
+                checked: localPreferences.taskAlerts,
                 disabled: !localPreferences.push,
-                onChange: (value) => handlePreferenceChange('newTasks', value),
+                onChange: (value) => handlePreferenceChange('taskAlerts', value),
+              })}
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
+              <div>
+                <label htmlFor="kitchen-post-alerts" className="font-medium text-gray-700">
+                  Kitchen Board Posts
+                </label>
+                <p className="text-sm text-gray-500">
+                  Get notified when someone shares a new fridge note
+                </p>
+              </div>
+              {renderToggleControl({
+                id: 'kitchen-post-alerts',
+                checked: localPreferences.kitchenPosts,
+                disabled: !localPreferences.push,
+                onChange: (value) => handlePreferenceChange('kitchenPosts', value),
               })}
             </div>
 
@@ -272,6 +289,23 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
                 checked: localPreferences.taskReminders,
                 disabled: !localPreferences.push,
                 onChange: (value) => handlePreferenceChange('taskReminders', value),
+              })}
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
+              <div>
+                <label htmlFor="direct-message-alerts" className="font-medium text-gray-700">
+                  Direct Messages
+                </label>
+                <p className="text-sm text-gray-500">
+                  Get notified when another member sends you a message
+                </p>
+              </div>
+              {renderToggleControl({
+                id: 'direct-message-alerts',
+                checked: localPreferences.directMessages,
+                disabled: !localPreferences.push,
+                onChange: (value) => handlePreferenceChange('directMessages', value),
               })}
             </div>
 

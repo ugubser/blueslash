@@ -5,7 +5,8 @@ import { HouseholdProvider, useHousehold } from './hooks/useHousehold';
 import Header from './components/Header';
 import MobileInstallPrompt from './components/MobileInstallPrompt';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
+import TaskBoard from './pages/TaskBoard';
+import KitchenBoard from './pages/KitchenBoard';
 import HouseholdSetup from './pages/HouseholdSetup';
 import HouseholdSettings from './pages/HouseholdSettings';
 import Invite from './pages/Invite';
@@ -70,10 +71,11 @@ const AuthenticatedRoutes: React.FC = () => {
       <MobileInstallPrompt />
       <Header />
       <Routes>
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/task-board" element={<TaskBoard />} />
+        <Route path="/kitchen-board" element={<KitchenBoard />} />
         <Route path="/household-settings" element={<HouseholdSettings />} />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/task-board" replace />} />
+        <Route path="*" element={<Navigate to="/task-board" replace />} />
       </Routes>
     </div>
   );

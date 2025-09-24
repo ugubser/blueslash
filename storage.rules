@@ -5,6 +5,25 @@ rules_version = '2';
 //    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isHouseholdMember(householdId) {
+      return isSignedIn()
+        && firestore.get(/databases/(default)/documents/households/$(householdId)).data.members.hasAny([request.auth.uid]);
+    }
+
+    match /kitchen-posts/{householdId}/{fileName} {
+      allow read: if isHouseholdMember(householdId);
+      allow create, update: if isHouseholdMember(householdId)
+        && request.resource != null
+        && request.resource.size < 10 * 1024 * 1024
+        && (request.resource.contentType.matches('image/.*')
+          || request.resource.contentType == 'application/pdf');
+      allow delete: if isHouseholdMember(householdId);
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

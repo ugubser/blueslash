@@ -23,24 +23,34 @@ const Header: React.FC = () => {
         {/* Desktop Layout */}
         <div className="hidden xl:flex items-center justify-between h-20 gap-8">
           <div className="flex items-center gap-8">
-            <Link to="/dashboard" className="text-2xl font-bold text-mario-blue hover:text-mario-blue-dark transition-colors">
+            <Link to="/task-board" className="text-2xl font-bold text-mario-blue hover:text-mario-blue-dark transition-colors">
               BlueSlash
             </Link>
             <div className="flex items-center gap-4">
               <HouseholdSwitcher />
               <nav className="flex items-center gap-3">
                 <Link
-                  to="/dashboard"
+                  to="/task-board"
                   className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors ${
-                    location.pathname === '/dashboard'
+                    location.pathname === '/task-board'
                       ? 'bg-mario-blue text-white'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  Dashboard
+                  Task Board
                 </Link>
                 <Link
-                  to={location.pathname === '/household-settings' ? '/dashboard' : '/household-settings'}
+                  to="/kitchen-board"
+                  className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors ${
+                    location.pathname === '/kitchen-board'
+                      ? 'bg-mario-blue text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  Kitchen Board
+                </Link>
+                <Link
+                  to={location.pathname === '/household-settings' ? '/task-board' : '/household-settings'}
                   className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 ${
                     location.pathname === '/household-settings'
                       ? 'bg-mario-blue text-white'
@@ -96,7 +106,7 @@ const Header: React.FC = () => {
                 </div>
                 
                 <Link
-                  to={location.pathname === '/household-settings' ? '/dashboard' : '/household-settings'}
+                  to={location.pathname === '/household-settings' ? '/task-board' : '/household-settings'}
                   className={`p-2 rounded-lg transition-colors ${
                     location.pathname === '/household-settings' 
                       ? 'bg-mario-blue text-white' 
@@ -129,6 +139,29 @@ const Header: React.FC = () => {
                 </span>
               </>
             )}
+          </div>
+
+          <div className="mt-3 flex items-center gap-2">
+            <Link
+              to="/task-board"
+              className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold transition-colors ${
+                location.pathname === '/task-board'
+                  ? 'bg-mario-blue text-white'
+                  : 'bg-white/70 text-gray-700'
+              }`}
+            >
+              Task Board
+            </Link>
+            <Link
+              to="/kitchen-board"
+              className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold transition-colors ${
+                location.pathname === '/kitchen-board'
+                  ? 'bg-mario-blue text-white'
+                  : 'bg-white/70 text-gray-700'
+              }`}
+            >
+              Kitchen Board
+            </Link>
           </div>
         </div>
       </div>

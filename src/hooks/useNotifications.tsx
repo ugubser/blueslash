@@ -44,7 +44,9 @@ export const useNotifications = (): UseNotificationsReturn => {
     const defaults: NotificationPreferences = {
       email: false,
       push: false,
-      newTasks: true,
+      taskAlerts: true,
+      kitchenPosts: true,
+      directMessages: true,
       taskReminders: false,
       verificationRequests: false,
     };
@@ -54,7 +56,11 @@ export const useNotifications = (): UseNotificationsReturn => {
       setPreferences({
         email: existing.email ?? defaults.email,
         push: existing.push ?? defaults.push,
-        newTasks: existing.newTasks ?? defaults.newTasks,
+        taskAlerts: (existing as Record<string, unknown>).newTasks !== undefined
+          ? Boolean((existing as Record<string, unknown>).newTasks)
+          : existing.taskAlerts ?? defaults.taskAlerts,
+        kitchenPosts: existing.kitchenPosts ?? defaults.kitchenPosts,
+        directMessages: existing.directMessages ?? defaults.directMessages,
         taskReminders: existing.taskReminders ?? defaults.taskReminders,
         verificationRequests: existing.verificationRequests ?? defaults.verificationRequests,
       });

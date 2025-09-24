@@ -97,10 +97,10 @@ const HouseholdSetup: React.FC = () => {
             </div>
 
             <button
-              onClick={() => window.location.href = '/dashboard'}
+              onClick={() => window.location.href = '/task-board'}
               className="mario-button-blue w-full"
             >
-              Go to Dashboard
+              Go to Task Board
             </button>
           </div>
         </div>

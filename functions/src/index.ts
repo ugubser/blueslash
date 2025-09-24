@@ -12,6 +12,7 @@ import {calculateGemsWithLLM} from "./llm-parser";
 
 // Import notification functions
 export * from "./notifications";
+export * from "./kitchen";
 
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript

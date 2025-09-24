@@ -87,12 +87,20 @@ export interface RecurrenceConfig {
   endDate?: Date;
 }
 
+export type GemTransactionType =
+  | 'task_creation'
+  | 'task_completion'
+  | 'verification'
+  | 'bonus'
+  | 'gift_sent'
+  | 'gift_received';
+
 export interface GemTransaction {
   id: string;
   userId: string;
   taskId?: string;
   amount: number;
-  type: 'task_creation' | 'task_completion' | 'verification' | 'bonus';
+  type: GemTransactionType;
   description: string;
   createdAt: Date;
 }
@@ -100,7 +108,50 @@ export interface GemTransaction {
 export interface NotificationPreferences {
   email: boolean;
   push: boolean;
-  newTasks: boolean;
+  taskAlerts: boolean;
+  kitchenPosts: boolean;
+  directMessages: boolean;
   taskReminders: boolean;
   verificationRequests: boolean;
+}
+
+export type KitchenAttachmentType = 'image' | 'pdf';
+
+export interface KitchenPostAttachment {
+  type: KitchenAttachmentType;
+  url: string;
+  storagePath: string;
+  fileName: string;
+  thumbnailUrl?: string;
+}
+
+export interface KitchenPostPosition {
+  x: number;
+  y: number;
+}
+
+export interface KitchenPost {
+  id: string;
+  householdId: string;
+  authorId: string;
+  authorName: string;
+  title: string;
+  body: string;
+  preview: string;
+  position: KitchenPostPosition;
+  attachment?: KitchenPostAttachment;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface DirectMessage {
+  id: string;
+  householdId: string;
+  senderId: string;
+  recipientId: string;
+  body: string;
+  gems: number;
+  participants: string[];
+  createdAt: Date;
+  readAt?: Date;
 }

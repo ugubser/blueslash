@@ -2,7 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
-import { getStorage } from 'firebase/storage';
+import { getStorage, connectStorageEmulator } from 'firebase/storage';
 import { getMessaging } from 'firebase/messaging';
 
 const firebaseConfig = {
@@ -81,15 +81,13 @@ if (useEmulators) {
     console.error('❌ Functions emulator connection failed:', error);
   }
 
-  // Skip storage emulator for now to avoid access errors
-  // try {
-  //   // Connect to Storage emulator
-  //   connectStorageEmulator(storage, '127.0.0.1', 9199);
-  //   console.log('✅ Connected to Storage emulator (port 9199)');
-  //   alreadyConnected.storage = true;
-  // } catch (error) {
-  //   console.error('❌ Storage emulator connection failed:', error);
-  // }
+  try {
+    connectStorageEmulator(storage, '127.0.0.1', 9199);
+    console.log('✅ Connected to Storage emulator (port 9199)');
+    alreadyConnected.storage = true;
+  } catch (error) {
+    console.error('❌ Storage emulator connection failed:', error);
+  }
 
   // Verify connections
   console.log('🔍 Emulator connection status:', alreadyConnected);

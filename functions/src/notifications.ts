@@ -32,7 +32,12 @@ interface NotificationPayload {
   requireInteraction?: boolean;
 }
 
-type NotificationPreferenceKey = 'taskReminders' | 'verificationRequests' | 'newTasks';
+type NotificationPreferenceKey =
+  | 'taskReminders'
+  | 'verificationRequests'
+  | 'taskAlerts'
+  | 'kitchenPosts'
+  | 'directMessages';
 
 interface SendNotificationOptions {
   requiredPreferences?: NotificationPreferenceKey[];
@@ -68,8 +73,8 @@ export async function sendPushNotification(
     if (options.requiredPreferences && options.requiredPreferences.length > 0) {
       const shouldSend = options.requiredPreferences.every((preference) => {
         const value = preferences[preference];
-        if (preference === 'newTasks') {
-          return value !== false; // default to true when undefined
+        if (preference === 'taskAlerts' || preference === 'kitchenPosts' || preference === 'directMessages') {
+          return value !== false;
         }
         return Boolean(value);
       });
@@ -184,7 +189,7 @@ async function notifyHouseholdAboutAvailableTask(taskId: string, taskData: any):
 
     const results = await Promise.allSettled(
       recipients.map((userId) =>
-        sendPushNotification(userId, payload, { requiredPreferences: ['newTasks'] })
+        sendPushNotification(userId, payload, { requiredPreferences: ['taskAlerts'] })
       )
     );
 

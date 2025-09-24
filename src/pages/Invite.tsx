@@ -57,7 +57,7 @@ const Invite: React.FC = () => {
       // Wait a bit to ensure state updates, then navigate
       setTimeout(() => {
         console.log('handleJoinHousehold: Navigating to dashboard');
-        navigate('/dashboard', { replace: true });
+        navigate('/task-board', { replace: true });
       }, 1000);
       
     } catch (error) {
@@ -192,11 +192,11 @@ const Invite: React.FC = () => {
               {error}
             </p>
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/task-board')}
               className="mario-button-blue w-full flex items-center justify-center gap-2"
             >
               <Home size={20} />
-              Go to Dashboard
+              Go to Task Board
             </button>
           </div>
         </div>

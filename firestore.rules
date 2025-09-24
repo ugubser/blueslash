@@ -1,6 +1,23 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isHouseholdMember(householdId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/households/$(householdId))
+        && get(/databases/$(database)/documents/households/$(householdId)).data.members != null
+        && get(/databases/$(database)/documents/households/$(householdId)).data.members.hasAny([request.auth.uid]);
+    }
+
+    function isHouseholdHead(householdId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/households/$(householdId))
+        && get(/databases/$(database)/documents/households/$(householdId)).data.headOfHousehold == request.auth.uid;
+    }
+
     // Users can read/write their own user document
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
@@ -36,7 +53,36 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/households/$(resource.data.householdId)) &&
         request.auth.uid in get(/databases/$(database)/documents/households/$(resource.data.householdId)).data.members;
     }
-    
+
+    match /kitchenPosts/{postId} {
+      allow read: if resource.data.householdId is string
+        && isHouseholdMember(resource.data.householdId);
+      allow create: if request.resource != null
+        && request.resource.data.householdId is string
+        && request.resource.data.authorId == request.auth.uid
+        && isHouseholdMember(request.resource.data.householdId);
+      allow update: if resource.data.householdId is string
+        && request.resource.data.authorId == resource.data.authorId
+        && isHouseholdMember(resource.data.householdId)
+        && (
+          request.auth.uid == resource.data.authorId
+          || isHouseholdHead(resource.data.householdId)
+        );
+      allow delete: if resource.data.householdId is string
+        && isHouseholdMember(resource.data.householdId)
+        && (
+          request.auth.uid == resource.data.authorId
+          || isHouseholdHead(resource.data.householdId)
+        );
+    }
+
+    match /directMessages/{messageId} {
+      allow read: if request.auth != null && request.auth.uid in resource.data.participants;
+      allow update: if request.auth != null
+        && request.auth.uid == resource.data.recipientId
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly(['readAt']);
+    }
+
     // Gem transactions - users can read their own transactions, create new ones
     match /gemTransactions/{transactionId} {
       allow read: if request.auth != null && request.auth.uid == resource.data.userId;
