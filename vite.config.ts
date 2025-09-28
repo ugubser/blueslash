@@ -53,7 +53,7 @@ export default defineConfig(({ mode }) => ({
               cacheName: 'google-fonts-cache',
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+                maxAgeSeconds: 60 * 60 * 24 * 60 // 2 months
               }
             }
           }
@@ -62,7 +62,7 @@ export default defineConfig(({ mode }) => ({
       manifest: {
         name: 'BlueSlash',
         short_name: 'BlueSlash',
-        description: 'Gamified household task management',
+        description: 'Gamified household task and information management',
         theme_color: '#1e40af',
         background_color: '#ffffff',
         display: 'standalone',
@@ -84,6 +84,7 @@ export default defineConfig(({ mode }) => ({
     }), processMessagingPlugin(mode)] : [])
   ],
   // Copy static assets including notification icons
+
   assetsInclude: ['**/*.png', '**/*.svg'],
   build: {
     rollupOptions: {
