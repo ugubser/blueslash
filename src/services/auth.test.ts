@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { User as FirebaseUser, Unsubscribe } from 'firebase/auth';
+import type { User as FirebaseUser } from 'firebase/auth';
 import type { User } from '../types';
 
 // Mock Firebase modules
 vi.mock('firebase/auth', () => ({
-  GoogleAuthProvider: vi.fn(function() {
+  GoogleAuthProvider: vi.fn(function(this: any) {
     this.addScope = vi.fn();
     this.setCustomParameters = vi.fn();
   }),
@@ -221,12 +221,12 @@ describe('Auth Service', () => {
       let authCallback: (user: FirebaseUser | null) => void;
       let snapshotCallback: (snapshot: any) => void;
 
-      vi.mocked(onAuthStateChanged).mockImplementation((auth, callback) => {
-        authCallback = callback;
+      vi.mocked(onAuthStateChanged).mockImplementation((_auth, callback) => {
+        authCallback = callback as any;
         return vi.fn(); // unsubscribe function
       });
 
-      vi.mocked(onSnapshot).mockImplementation((docRef, callback) => {
+      vi.mocked(onSnapshot).mockImplementation((_docRef, callback) => {
         snapshotCallback = callback as any;
         return vi.fn(); // unsubscribe function
       });
@@ -248,8 +248,8 @@ describe('Auth Service', () => {
     it('should call callback with null when not authenticated', () => {
       let authCallback: (user: FirebaseUser | null) => void;
 
-      vi.mocked(onAuthStateChanged).mockImplementation((auth, callback) => {
-        authCallback = callback;
+      vi.mocked(onAuthStateChanged).mockImplementation((_auth, callback) => {
+        authCallback = callback as any;
         return vi.fn();
       });
 
@@ -283,15 +283,13 @@ describe('Auth Service', () => {
       } as FirebaseUser;
 
       let authCallback: (user: FirebaseUser | null) => void;
-      let snapshotCallback: (snapshot: any) => void;
 
-      vi.mocked(onAuthStateChanged).mockImplementation((auth, callback) => {
-        authCallback = callback;
+      vi.mocked(onAuthStateChanged).mockImplementation((_auth, callback) => {
+        authCallback = callback as any;
         return vi.fn();
       });
 
-      vi.mocked(onSnapshot).mockImplementation((docRef, callback) => {
-        snapshotCallback = callback as any;
+      vi.mocked(onSnapshot).mockImplementation((_docRef, _callback) => {
         return vi.fn();
       });
 

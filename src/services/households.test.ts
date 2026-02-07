@@ -178,7 +178,7 @@ describe('Household Service', () => {
       };
 
       const mockQuerySnapshot = {
-        forEach: (callback: (doc: any) => void) => {
+        forEach: (_callback: (doc: any) => void) => {
           // Return empty for simplicity
         },
       };
@@ -240,14 +240,11 @@ describe('Household Service', () => {
       };
 
       let householdCallback: (snapshot: any) => void;
-      let membersCallback: (snapshot: any) => void;
 
-      vi.mocked(onSnapshot).mockImplementation((docOrQuery: any, callback: any) => {
+      vi.mocked(onSnapshot).mockImplementation((_docOrQuery: any, callback: any) => {
         if (callback) {
           if (!householdCallback) {
             householdCallback = callback;
-          } else {
-            membersCallback = callback;
           }
         }
         return vi.fn(); // unsubscribe
@@ -272,7 +269,7 @@ describe('Household Service', () => {
     it('should call callback with empty array when household does not exist', () => {
       let householdCallback: (snapshot: any) => void;
 
-      vi.mocked(onSnapshot).mockImplementation((docOrQuery: any, callback: any) => {
+      vi.mocked(onSnapshot).mockImplementation((_docOrQuery: any, callback: any) => {
         householdCallback = callback;
         return vi.fn();
       });
