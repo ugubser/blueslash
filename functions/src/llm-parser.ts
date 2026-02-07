@@ -7,8 +7,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Default values
-const openRouterBaseUrl = 'https://openrouter.ai/api/v1';
-const openRouterModel = 'meta-llama/llama-4-maverick';
+let openRouterBaseUrl = 'https://openrouter.ai/api/v1';
+let openRouterModel = 'meta-llama/llama-4-maverick';
 
 /**
  * Load API key from various sources in priority order:
