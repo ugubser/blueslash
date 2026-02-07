@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth';
 import { HouseholdProvider, useHousehold } from './hooks/useHousehold';
 import { ToastProvider } from './hooks/useToast';
 import { ToastContainer } from './components/Toast';
+import ErrorBoundary from './components/ErrorBoundary';
 import Header from './components/Header';
 import MobileInstallPrompt from './components/MobileInstallPrompt';
 import Login from './pages/Login';
@@ -85,16 +86,18 @@ const AuthenticatedRoutes: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <Router>
-      <ToastProvider>
-        <AuthProvider>
-          <HouseholdProvider>
-            <AppRoutes />
-            <ToastContainer />
-          </HouseholdProvider>
-        </AuthProvider>
-      </ToastProvider>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <ToastProvider>
+          <AuthProvider>
+            <HouseholdProvider>
+              <AppRoutes />
+              <ToastContainer />
+            </HouseholdProvider>
+          </AuthProvider>
+        </ToastProvider>
+      </Router>
+    </ErrorBoundary>
   );
 };
 

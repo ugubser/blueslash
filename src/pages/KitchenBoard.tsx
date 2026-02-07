@@ -15,6 +15,7 @@ import MarkdownRenderer from '../components/MarkdownRenderer';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
 import { useToast } from '../hooks/useToast';
+import { formatDateTime } from '../utils/formatting';
 import type {
   DirectMessage,
   KitchenPost,
@@ -523,7 +524,7 @@ const KitchenBoard: React.FC = () => {
                           {isSender ? `To ${name}` : `From ${name}`}
                         </p>
                         <span className="text-xs text-gray-500">
-                          {message.createdAt.toLocaleString()}
+                          {formatDateTime(message.createdAt)}
                         </span>
                       </div>
                       <p className="text-sm text-gray-700 whitespace-pre-wrap mb-2">{message.body}</p>

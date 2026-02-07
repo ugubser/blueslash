@@ -94,7 +94,7 @@ const makePreview = (markdown: string): string => {
   const text = markdown
     .replace(/```[\s\S]*?```/g, '')
     .replace(/`[^`]*`/g, '')
-    .replace(/[#>*_`\-\[\]!]/g, '')
+    .replace(/[#>*_`\-[\]!]/g, '')
     .replace(/\n+/g, ' ')
     .trim();
 

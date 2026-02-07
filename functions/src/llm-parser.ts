@@ -7,9 +7,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Default values
-let openRouterKey: string | undefined;
-let openRouterBaseUrl = 'https://openrouter.ai/api/v1';
-let openRouterModel = 'meta-llama/llama-4-maverick';
+const openRouterBaseUrl = 'https://openrouter.ai/api/v1';
+const openRouterModel = 'meta-llama/llama-4-maverick';
 
 /**
  * Load API key from various sources in priority order:
@@ -114,7 +113,7 @@ function loadKeyFromConfigFile(): string | undefined {
 }
 
 // Load the API key
-openRouterKey = loadApiKey();
+const openRouterKey = loadApiKey();
 
 // Log API key status (safely without revealing the key)
 if (openRouterKey) {

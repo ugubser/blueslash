@@ -2,16 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Users, Link, Trash2, Copy, Plus, Crown, User, Brain, Save } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
-import { 
-  generateInviteLink, 
+import { useToast } from '../hooks/useToast';
+import {
+  generateInviteLink,
   removeMemberFromHousehold,
-  updateHousehold 
+  updateHousehold
 } from '../services/households';
+import { formatDate, formatNumber } from '../utils/formatting';
 import NotificationSettings from '../components/NotificationSettings';
 
 const HouseholdSettings: React.FC = () => {
   const { user } = useAuth();
   const { household, members } = useHousehold();
+  const { showToast } = useToast();
   const [inviteLink, setInviteLink] = useState<string>('');
   const [generatingLink, setGeneratingLink] = useState(false);
   const [removingMember, setRemovingMember] = useState<string | null>(null);
@@ -51,7 +54,7 @@ If something exceed any of these things, then it's 25 Gems.`;
       setInviteLink(link);
     } catch (error) {
       console.error('Error generating invite link:', error);
-      alert('Failed to generate invite link');
+      showToast('Failed to generate invite link', 'error');
     } finally {
       setGeneratingLink(false);
     }
@@ -60,10 +63,10 @@ If something exceed any of these things, then it's 25 Gems.`;
   const handleCopyInviteLink = async () => {
     try {
       await navigator.clipboard.writeText(inviteLink);
-      alert('Invite link copied to clipboard!');
+      showToast('Invite link copied to clipboard!', 'success');
     } catch (error) {
       console.error('Error copying to clipboard:', error);
-      alert('Failed to copy link');
+      showToast('Failed to copy link', 'error');
     }
   };
 
@@ -81,7 +84,7 @@ If something exceed any of these things, then it's 25 Gems.`;
       await removeMemberFromHousehold(household.id, memberId, user.id);
     } catch (error) {
       console.error('Error removing member:', error);
-      alert('Failed to remove member');
+      showToast('Failed to remove member', 'error');
     } finally {
       setRemovingMember(null);
     }
@@ -96,10 +99,10 @@ If something exceed any of these things, then it's 25 Gems.`;
         gemPrompt,
         allowGemOverride
       });
-      alert('Gem calculation settings saved successfully!');
+      showToast('Gem calculation settings saved successfully!', 'success');
     } catch (error) {
       console.error('Error saving gem settings:', error);
-      alert('Failed to save gem settings');
+      showToast('Failed to save gem settings', 'error');
     } finally {
       setSavingPrompt(false);
     }
@@ -107,24 +110,6 @@ If something exceed any of these things, then it's 25 Gems.`;
 
   console.log('HouseholdSettings render - user:', !!user, 'household:', !!household, 'isHead:', isHeadOfHousehold);
   
-  // Add error boundary for date formatting
-  const formatDate = (date: unknown) => {
-    try {
-      if (date instanceof Date) {
-        return date.toLocaleDateString();
-      }
-      if (date && typeof date === 'object' && 'toDate' in date && typeof date.toDate === 'function') {
-        return (date.toDate() as Date).toLocaleDateString();
-      }
-      if (typeof date === 'string' || typeof date === 'number') {
-        return new Date(date).toLocaleDateString();
-      }
-      return 'Unknown date';
-    } catch (error) {
-      console.error('Date formatting error:', error);
-      return 'Unknown date';
-    }
-  };
 
   if (!user) {
     return (
@@ -333,7 +318,7 @@ If something exceed any of these things, then it's 25 Gems.`;
                       <h3 className="font-bold text-gray-800">{member.displayName}</h3>
                       <p className="text-sm text-gray-600 truncate" title={member.email}>{member.email}</p>
                       <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
-                        <span>{member.gems.toLocaleString()} gems</span>
+                        <span>{formatNumber(member.gems)} gems</span>
                         <span>
                           {member.id === household.headOfHousehold ? 'Head of Household' : 'Member'}
                         </span>
@@ -368,7 +353,7 @@ If something exceed any of these things, then it's 25 Gems.`;
                       <h3 className="font-bold text-gray-800">{member.displayName}</h3>
                       <p className="text-sm text-gray-600 truncate" title={member.email}>{member.email}</p>
                       <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
-                        <span>{member.gems.toLocaleString()} gems</span>
+                        <span>{formatNumber(member.gems)} gems</span>
                         <span>
                           {member.id === household.headOfHousehold ? 'Head of Household' : 'Member'}
                         </span>

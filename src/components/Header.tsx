@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
 import { getUserRole } from '../utils/household';
+import { formatNumber } from '../utils/formatting';
 import HouseholdSwitcher from './HouseholdSwitcher';
 
 const Header: React.FC = () => {
@@ -65,7 +66,7 @@ const Header: React.FC = () => {
             <div className="flex items-center gap-5">
               <div className="gem-counter">
                 <Coins className="coin-icon" size={20} />
-                <span>{user.gems.toLocaleString()}</span>
+                <span>{formatNumber(user.gems)}</span>
               </div>
 
               <div className="flex items-center gap-3 text-sm">
@@ -99,7 +100,7 @@ const Header: React.FC = () => {
               <div className="flex items-center gap-2 flex-shrink-0">
                 <div className="gem-counter text-sm">
                   <Coins className="coin-icon" size={16} />
-                  <span>{user.gems.toLocaleString()}</span>
+                  <span>{formatNumber(user.gems)}</span>
                 </div>
                 
                 <Link

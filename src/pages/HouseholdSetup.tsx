@@ -2,12 +2,9 @@ import React, { useState } from 'react';
 import { Home, Users, Link, Copy, CheckCircle } from 'lucide-react';
 import { createHousehold, generateInviteLink } from '../services/households';
 import { useAuth } from '../hooks/useAuth';
-import { useHousehold } from '../hooks/useHousehold';
 
 const HouseholdSetup: React.FC = () => {
   const { user } = useAuth();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { } = useHousehold();
   const [householdName, setHouseholdName] = useState('');
   const [inviteLink, setInviteLink] = useState('');
   const [loading, setLoading] = useState(false);

@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Bell, BellOff, CheckCircle, AlertCircle, Loader, TestTube } from 'lucide-react';
 import { useNotifications } from '../hooks/useNotifications';
 import { useAuth } from '../hooks/useAuth';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../services/firebase';
 import type { NotificationPreferences } from '../types';
+import ToggleControl from './common/ToggleControl';
 
 interface NotificationSettingsProps {
   showTestingControls?: boolean;
@@ -41,45 +42,6 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
   React.useEffect(() => {
     setLocalPreferences(preferences);
   }, [preferences]);
-
-  const renderToggleControl = useMemo(() => {
-    return (options: {
-      id?: string;
-      checked: boolean;
-      disabled?: boolean;
-      onChange: (value: boolean) => void;
-    }) => {
-      const { id, checked, disabled, onChange } = options;
-
-      if (isMobileViewport) {
-        return (
-          <button
-            type="button"
-            onClick={() => !disabled && onChange(!checked)}
-            disabled={disabled}
-            className={`w-full sm:w-auto px-4 py-2 border-2 rounded-lg font-semibold transition-colors ${checked ? 'bg-mario-green text-white border-mario-green' : 'bg-gray-100 text-gray-600 border-gray-200'} ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:brightness-105'}`}
-          >
-            {checked ? 'On' : 'Off'}
-          </button>
-        );
-      }
-
-      return (
-        <div className="flex w-full sm:w-auto sm:justify-end">
-          <label className="mario-toggle ml-auto" htmlFor={id}>
-            <input
-              id={id}
-              type="checkbox"
-              checked={checked}
-              onChange={(event) => onChange(event.target.checked)}
-              disabled={disabled}
-            />
-            <span className={`mario-toggle-slider ${disabled ? 'opacity-50' : ''}`}></span>
-          </label>
-        </div>
-      );
-    };
-  }, [isMobileViewport]);
 
   const handlePermissionRequest = async () => {
     try {
@@ -234,11 +196,12 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
                   Receive notifications in your browser or device
                 </p>
               </div>
-              {renderToggleControl({
-                id: 'push-notifications',
-                checked: localPreferences.push,
-                onChange: (value) => handlePreferenceChange('push', value),
-              })}
+              <ToggleControl
+                id="push-notifications"
+                checked={localPreferences.push}
+                onChange={(value) => handlePreferenceChange('push', value)}
+                useMobileStyle={isMobileViewport}
+              />
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
@@ -250,12 +213,13 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
                   Get notified when a new task is published and ready to claim
                 </p>
               </div>
-              {renderToggleControl({
-                id: 'task-alerts',
-                checked: localPreferences.taskAlerts,
-                disabled: !localPreferences.push,
-                onChange: (value) => handlePreferenceChange('taskAlerts', value),
-              })}
+              <ToggleControl
+                id="task-alerts"
+                checked={localPreferences.taskAlerts}
+                disabled={!localPreferences.push}
+                onChange={(value) => handlePreferenceChange('taskAlerts', value)}
+                useMobileStyle={isMobileViewport}
+              />
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
@@ -267,12 +231,13 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
                   Get notified when someone shares a new fridge note
                 </p>
               </div>
-              {renderToggleControl({
-                id: 'kitchen-post-alerts',
-                checked: localPreferences.kitchenPosts,
-                disabled: !localPreferences.push,
-                onChange: (value) => handlePreferenceChange('kitchenPosts', value),
-              })}
+              <ToggleControl
+                id="kitchen-post-alerts"
+                checked={localPreferences.kitchenPosts}
+                disabled={!localPreferences.push}
+                onChange={(value) => handlePreferenceChange('kitchenPosts', value)}
+                useMobileStyle={isMobileViewport}
+              />
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
@@ -284,12 +249,13 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
                   Get reminded about due dates (7, 4, 2, 1 days before)
                 </p>
               </div>
-              {renderToggleControl({
-                id: 'task-reminders',
-                checked: localPreferences.taskReminders,
-                disabled: !localPreferences.push,
-                onChange: (value) => handlePreferenceChange('taskReminders', value),
-              })}
+              <ToggleControl
+                id="task-reminders"
+                checked={localPreferences.taskReminders}
+                disabled={!localPreferences.push}
+                onChange={(value) => handlePreferenceChange('taskReminders', value)}
+                useMobileStyle={isMobileViewport}
+              />
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
@@ -301,12 +267,13 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
                   Get notified when another member sends you a message
                 </p>
               </div>
-              {renderToggleControl({
-                id: 'direct-message-alerts',
-                checked: localPreferences.directMessages,
-                disabled: !localPreferences.push,
-                onChange: (value) => handlePreferenceChange('directMessages', value),
-              })}
+              <ToggleControl
+                id="direct-message-alerts"
+                checked={localPreferences.directMessages}
+                disabled={!localPreferences.push}
+                onChange={(value) => handlePreferenceChange('directMessages', value)}
+                useMobileStyle={isMobileViewport}
+              />
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
@@ -318,12 +285,13 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
                   Get notified when tasks need verification
                 </p>
               </div>
-              {renderToggleControl({
-                id: 'verification-requests',
-                checked: localPreferences.verificationRequests,
-                disabled: !localPreferences.push,
-                onChange: (value) => handlePreferenceChange('verificationRequests', value),
-              })}
+              <ToggleControl
+                id="verification-requests"
+                checked={localPreferences.verificationRequests}
+                disabled={!localPreferences.push}
+                onChange={(value) => handlePreferenceChange('verificationRequests', value)}
+                useMobileStyle={isMobileViewport}
+              />
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
@@ -335,12 +303,13 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
                   Receive notifications via email (coming soon)
                 </p>
               </div>
-              {renderToggleControl({
-                id: 'email-notifications',
-                checked: localPreferences.email,
-                disabled: true,
-                onChange: (value) => handlePreferenceChange('email', value),
-              })}
+              <ToggleControl
+                id="email-notifications"
+                checked={localPreferences.email}
+                disabled={true}
+                onChange={(value) => handlePreferenceChange('email', value)}
+                useMobileStyle={isMobileViewport}
+              />
             </div>
           </div>
 

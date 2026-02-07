@@ -2,15 +2,12 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Users, CheckCircle, XCircle, Home, LogIn } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { useHousehold } from '../hooks/useHousehold';
 import { joinHouseholdByInvite } from '../services/households';
 
 const Invite: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const { user, signIn, refreshUser } = useAuth();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { } = useHousehold();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
