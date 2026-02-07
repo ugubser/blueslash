@@ -1,13 +1,15 @@
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
+import {
+  collection,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
   getDocs,
   onSnapshot,
   arrayUnion,
-  arrayRemove
+  arrayRemove,
+  query,
+  where
 } from 'firebase/firestore';
 import type { Unsubscribe } from 'firebase/firestore';
 import { db } from './firebase';
@@ -235,15 +237,22 @@ export const getHousehold = async (householdId: string): Promise<Household | nul
 export const getHouseholdMembers = async (householdId: string): Promise<User[]> => {
   try {
     const household = await getHousehold(householdId);
-    if (!household) return [];
+    if (!household || household.members.length === 0) return [];
 
-    const memberPromises = household.members.map(async (memberId) => {
-      const userDoc = await getDoc(doc(db, 'users', memberId));
-      return userDoc.exists() ? userDoc.data() as User : null;
-    });
+    // Batch member IDs into groups of 10 (Firestore 'in' query limit)
+    const batches = chunkArray(household.members, 10);
+    const allMembers: User[] = [];
 
-    const members = await Promise.all(memberPromises);
-    return members.filter(member => member !== null) as User[];
+    for (const batch of batches) {
+      const q = query(
+        collection(db, 'users'),
+        where('id', 'in', batch)
+      );
+      const snapshot = await getDocs(q);
+      snapshot.forEach(doc => allMembers.push(doc.data() as User));
+    }
+
+    return allMembers;
   } catch (error) {
     console.error('Error getting household members:', error);
     throw error;
@@ -385,72 +394,91 @@ export const subscribeToHousehold = (
   }
 };
 
+// Helper function to chunk arrays for batched queries (Firestore 'in' limit is 10)
+function chunkArray<T>(array: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
 export const subscribeToHouseholdMembers = (
   householdId: string,
   callback: (members: User[]) => void
 ): Unsubscribe => {
   try {
-    let userUnsubscribes: Unsubscribe[] = [];
-    let currentMembers: User[] = [];
-    
-    // Subscribe to household document to get member list changes
-    const householdUnsubscribe = onSnapshot(doc(db, 'households', householdId), (snapshot) => {
-      if (snapshot.exists()) {
-        const household = snapshot.data() as Household;
-        
-        // Clean up existing user subscriptions
-        userUnsubscribes.forEach(unsubscribe => unsubscribe());
-        userUnsubscribes = [];
-        currentMembers = [];
-        
-        // Create individual subscriptions for each user
-        household.members.forEach(memberId => {
-          const userUnsubscribe = onSnapshot(doc(db, 'users', memberId), (userSnapshot) => {
-            if (userSnapshot.exists()) {
-              const userData = userSnapshot.data() as User;
-              
-              // Update the member in our current list
-              const existingIndex = currentMembers.findIndex(m => m.id === memberId);
-              if (existingIndex >= 0) {
-                currentMembers[existingIndex] = userData;
-              } else {
-                currentMembers.push(userData);
-              }
-              
-              // Call callback with updated members list
-              callback([...currentMembers]);
-            } else {
-              // Remove member if user document doesn't exist
-              currentMembers = currentMembers.filter(m => m.id !== memberId);
-              callback([...currentMembers]);
-            }
-          }, (error) => {
-            console.error(`Error subscribing to user ${memberId}:`, error);
-          });
-          
-          userUnsubscribes.push(userUnsubscribe);
-        });
-        
-        // If no members, call callback with empty array
-        if (household.members.length === 0) {
+    let batchUnsubscribes: Unsubscribe[] = [];
+
+    const householdUnsubscribe = onSnapshot(
+      doc(db, 'households', householdId),
+      (snapshot) => {
+        if (!snapshot.exists()) {
+          // Clean up batch subscriptions and return empty
+          batchUnsubscribes.forEach(u => u());
+          batchUnsubscribes = [];
           callback([]);
+          return;
         }
-      } else {
-        // Clean up user subscriptions and call callback with empty array
-        userUnsubscribes.forEach(unsubscribe => unsubscribe());
-        userUnsubscribes = [];
-        currentMembers = [];
+
+        const household = snapshot.data() as Household;
+        const memberIds = household.members;
+
+        if (memberIds.length === 0) {
+          // Clean up batch subscriptions and return empty
+          batchUnsubscribes.forEach(u => u());
+          batchUnsubscribes = [];
+          callback([]);
+          return;
+        }
+
+        // Clean up previous batch subscriptions
+        batchUnsubscribes.forEach(u => u());
+        batchUnsubscribes = [];
+
+        // Batch member IDs into groups of 10 (Firestore 'in' query limit)
+        const batches = chunkArray(memberIds, 10);
+        const memberMap = new Map<string, User>();
+        let batchesCompleted = 0;
+
+        batches.forEach(batch => {
+          const q = query(
+            collection(db, 'users'),
+            where('id', 'in', batch)
+          );
+
+          const unsubscribe = onSnapshot(
+            q,
+            (querySnapshot) => {
+              // Update member map with latest data
+              querySnapshot.forEach(doc => {
+                memberMap.set(doc.id, doc.data() as User);
+              });
+
+              // Only invoke callback once all batches have reported at least once
+              batchesCompleted++;
+              if (batchesCompleted >= batches.length || memberMap.size > 0) {
+                callback(Array.from(memberMap.values()));
+              }
+            },
+            (error) => {
+              console.error('Error subscribing to household members batch:', error);
+            }
+          );
+
+          batchUnsubscribes.push(unsubscribe);
+        });
+      },
+      (error) => {
+        console.error('Error subscribing to household:', error);
         callback([]);
       }
-    }, (error) => {
-      console.error('Error subscribing to household:', error);
-      callback([]);
-    });
+    );
 
     // Return cleanup function that unsubscribes from everything
     return () => {
       householdUnsubscribe();
-      userUnsubscribes.forEach(unsubscribe => unsubscribe());
+      batchUnsubscribes.forEach(u => u());
     };
   } catch (error) {
     console.error('Error setting up household members subscription:', error);

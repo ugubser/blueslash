@@ -3,6 +3,7 @@ import { Coins, User, LogOut, Settings } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
+import { getUserRole } from '../utils/household';
 import HouseholdSwitcher from './HouseholdSwitcher';
 
 const Header: React.FC = () => {
@@ -10,11 +11,7 @@ const Header: React.FC = () => {
   const { household } = useHousehold();
   const location = useLocation();
 
-  const getCurrentUserRole = () => {
-    if (!user || !household) return 'member';
-    const userHousehold = user.households?.find(h => h.householdId === household.id);
-    return userHousehold?.role || 'member';
-  };
+  const userRole = getUserRole(user, household);
 
 
   return (
@@ -75,7 +72,7 @@ const Header: React.FC = () => {
                 <User size={16} />
                 <span className="text-gray-700 whitespace-nowrap">{user.displayName}</span>
                 <span className="power-up-badge text-xs">
-                  {getCurrentUserRole() === 'head' ? '👑 HEAD' : '👤 MEMBER'}
+                  {userRole === 'head' ? '👑 HEAD' : '👤 MEMBER'}
                 </span>
               </div>
 
@@ -135,7 +132,7 @@ const Header: React.FC = () => {
                   <span className="text-gray-700 truncate">{user.displayName}</span>
                 </div>
                 <span className="power-up-badge text-xs whitespace-nowrap flex-shrink-0">
-                  {getCurrentUserRole() === 'head' ? '👑 HEAD' : '👤 MEMBER'}
+                  {userRole === 'head' ? '👑 HEAD' : '👤 MEMBER'}
                 </span>
               </>
             )}

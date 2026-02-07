@@ -14,6 +14,7 @@ import MarkdownToolbar from '../components/MarkdownToolbar';
 import MarkdownRenderer from '../components/MarkdownRenderer';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
+import { useToast } from '../hooks/useToast';
 import type {
   DirectMessage,
   KitchenPost,
@@ -43,6 +44,7 @@ interface PostModalState {
 const KitchenBoard: React.FC = () => {
   const { user, refreshUser } = useAuth();
   const { household, members } = useHousehold();
+  const { showToast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -180,7 +182,7 @@ const KitchenBoard: React.FC = () => {
       resetComposer();
     } catch (error) {
       console.error('Failed to save kitchen post:', error);
-      alert('Failed to save post. Please try again.');
+      showToast('Failed to save post. Please try again.', 'error');
     } finally {
       setIsSavingPost(false);
     }
@@ -205,11 +207,12 @@ const KitchenBoard: React.FC = () => {
     if (!postPendingDelete) return;
     try {
       await deleteKitchenPost(postPendingDelete);
+      setSelectedPost(null);
       setPostPendingDelete(null);
       setIsConfirmDeleteOpen(false);
     } catch (error) {
       console.error('Failed to delete post:', error);
-      alert('Failed to delete post. Please try again.');
+      showToast('Failed to delete post. Please try again.', 'error');
     }
   };
 
@@ -229,12 +232,12 @@ const KitchenBoard: React.FC = () => {
   const handleSendMessage = async () => {
     if (!user || !household) return;
     if (!messageRecipient) {
-      alert('Select a household member to send a message.');
+      showToast('Select a household member to send a message.', 'warning');
       return;
     }
 
     if (!messageBody.trim()) {
-      alert('Message cannot be empty');
+      showToast('Message cannot be empty', 'warning');
       return;
     }
 
@@ -260,7 +263,7 @@ const KitchenBoard: React.FC = () => {
       setMessageGems(0);
     } catch (error) {
       console.error('Failed to send message:', error);
-      alert('Failed to send message. Please try again.');
+      showToast('Failed to send message. Please try again.', 'error');
     } finally {
       setSendingMessage(false);
     }
@@ -303,6 +306,14 @@ const KitchenBoard: React.FC = () => {
       setPendingPostId(null);
     }
   }, [pendingPostId, posts]);
+
+  useEffect(() => {
+    if (!selectedPost) return;
+    const stillExists = posts.some((post) => post.id === selectedPost.post.id);
+    if (!stillExists) {
+      setSelectedPost(null);
+    }
+  }, [posts, selectedPost]);
 
   useEffect(() => {
     if (!pendingMessageId) return;

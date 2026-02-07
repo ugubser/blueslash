@@ -3,6 +3,7 @@ import { Calendar, Coins, User, CheckCircle, Edit, Repeat, Trash2, ArrowLeft, X 
 import type { Task, ChecklistGroup } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
+import { useToast } from '../hooks/useToast';
 import { updateTaskStatus, verifyTask, createRecurringTask, deleteTask, updateTaskChecklist } from '../services/tasks';
 import { parseMarkdownChecklist, hasChecklistItems, renderDescriptionWithoutChecklist } from '../utils/checklist';
 import TaskChecklist from './TaskChecklist';
@@ -18,6 +19,7 @@ interface TaskCardProps {
 const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask, isHighlighted = false }) => {
   const { user } = useAuth();
   const { members } = useHousehold();
+  const { showToast } = useToast();
   const [checklistGroups, setChecklistGroups] = useState<ChecklistGroup[]>([]);
 
   // Initialize checklist groups when task changes
@@ -70,7 +72,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask, isHighlighted = f
     } catch (error) {
       console.error('Error claiming task:', error);
       if (error instanceof Error && error.message.includes('no longer available')) {
-        alert('This task has already been claimed by someone else.');
+        showToast('This task has already been claimed by someone else.', 'warning');
       }
     }
   };
@@ -100,10 +102,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask, isHighlighted = f
     
     try {
       await createRecurringTask(task, user.id);
-      alert('New recurring task created! Check your drafts to customize and publish it.');
+      showToast('New recurring task created! Check your drafts to customize and publish it.', 'success');
     } catch (error) {
       console.error('Error creating recurring task:', error);
-      alert('Failed to create recurring task');
+      showToast('Failed to create recurring task', 'error');
     }
   };
 
@@ -116,7 +118,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask, isHighlighted = f
       await deleteTask(task.id);
     } catch (error) {
       console.error('Error deleting task:', error);
-      alert('Failed to delete task');
+      showToast('Failed to delete task', 'error');
     }
   };
 
@@ -127,7 +129,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask, isHighlighted = f
       await updateTaskStatus(task.id, 'draft');
     } catch (error) {
       console.error('Error unpublishing task:', error);
-      alert('Failed to unpublish task');
+      showToast('Failed to unpublish task', 'error');
     }
   };
 
@@ -138,7 +140,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask, isHighlighted = f
       await updateTaskStatus(task.id, 'published');
     } catch (error) {
       console.error('Error unclaiming task:', error);
-      alert('Failed to unclaim task');
+      showToast('Failed to unclaim task', 'error');
     }
   };
 

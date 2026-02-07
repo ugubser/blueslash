@@ -354,8 +354,38 @@ const recordGemTransaction = async (
   }
 };
 
+// Helper function to create task subscriptions (eliminates duplication)
+function createTaskSubscription(
+  q: ReturnType<typeof query>,
+  callback: (tasks: Task[]) => void,
+  errorContext: string
+): Unsubscribe {
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const tasks = snapshot.docs.map(doc => {
+        const data = doc.data() as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+        return {
+          ...data,
+          dueDate: data.dueDate?.toDate ? data.dueDate.toDate() : new Date(data.dueDate),
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
+          verifications: data.verifications?.map((v: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+            ...v,
+            verifiedAt: v.verifiedAt?.toDate ? v.verifiedAt.toDate() : new Date(v.verifiedAt)
+          })) || []
+        } as Task;
+      });
+      callback(tasks);
+    },
+    (error) => {
+      console.error(`Error subscribing to ${errorContext}:`, error);
+    }
+  );
+}
+
 export const subscribeToHouseholdTasks = (
-  householdId: string, 
+  householdId: string,
   callback: (tasks: Task[]) => void,
   status?: TaskStatus
 ): Unsubscribe => {
@@ -375,24 +405,7 @@ export const subscribeToHouseholdTasks = (
       );
     }
 
-    return onSnapshot(tasksQuery, (snapshot) => {
-      const tasks = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          ...data,
-          dueDate: data.dueDate?.toDate ? data.dueDate.toDate() : new Date(data.dueDate),
-          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
-          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
-          verifications: data.verifications?.map((v: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
-            ...v,
-            verifiedAt: v.verifiedAt?.toDate ? v.verifiedAt.toDate() : new Date(v.verifiedAt)
-          })) || []
-        } as Task;
-      });
-      callback(tasks);
-    }, (error) => {
-      console.error('Error subscribing to household tasks:', error);
-    });
+    return createTaskSubscription(tasksQuery, callback, 'household tasks');
   } catch (error) {
     console.error('Error setting up household tasks subscription:', error);
     return () => {}; // Return empty unsubscribe function
@@ -400,7 +413,7 @@ export const subscribeToHouseholdTasks = (
 };
 
 export const subscribeToUserTasks = (
-  userId: string, 
+  userId: string,
   callback: (tasks: Task[]) => void,
   status?: TaskStatus
 ): Unsubscribe => {
@@ -420,24 +433,7 @@ export const subscribeToUserTasks = (
       );
     }
 
-    return onSnapshot(tasksQuery, (snapshot) => {
-      const tasks = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          ...data,
-          dueDate: data.dueDate?.toDate ? data.dueDate.toDate() : new Date(data.dueDate),
-          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
-          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
-          verifications: data.verifications?.map((v: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
-            ...v,
-            verifiedAt: v.verifiedAt?.toDate ? v.verifiedAt.toDate() : new Date(v.verifiedAt)
-          })) || []
-        } as Task;
-      });
-      callback(tasks);
-    }, (error) => {
-      console.error('Error subscribing to user tasks:', error);
-    });
+    return createTaskSubscription(tasksQuery, callback, 'user tasks');
   } catch (error) {
     console.error('Error setting up user tasks subscription:', error);
     return () => {}; // Return empty unsubscribe function

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { Household, User } from '../types';
 import { subscribeToHousehold, subscribeToHouseholdMembers, getUserHouseholds, switchHousehold } from '../services/households';
 import { useAuth } from './useAuth';
@@ -20,24 +20,9 @@ export const HouseholdProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [userHouseholds, setUserHouseholds] = useState<Household[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadUserHouseholds = useCallback(async () => {
-    if (!user) {
-      setUserHouseholds([]);
-      return;
-    }
-
-    try {
-      const householdsData = await getUserHouseholds(user.id);
-      setUserHouseholds(householdsData);
-    } catch (error) {
-      console.error('Error loading user households:', error);
-      setUserHouseholds([]);
-    }
-  }, [user]);
-
   const switchCurrentHousehold = async (householdId: string) => {
     if (!user) return;
-    
+
     try {
       await switchHousehold(user.id, householdId);
       await refreshUser(); // Refresh user data to get updated currentHouseholdId
@@ -80,16 +65,20 @@ export const HouseholdProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
   }, [user?.currentHouseholdId]);
 
+  // Load user households when user ID changes
   useEffect(() => {
-    if (user) {
-      loadUserHouseholds();
+    if (user?.id) {
+      getUserHouseholds(user.id).then(setUserHouseholds).catch(error => {
+        console.error('Error loading user households:', error);
+        setUserHouseholds([]);
+      });
     } else {
       setHousehold(null);
       setMembers([]);
       setUserHouseholds([]);
       setLoading(false);
     }
-  }, [user, loadUserHouseholds]);
+  }, [user?.id]); // Use stable user.id instead of full user object
 
   return (
     <HouseholdContext.Provider value={{ 

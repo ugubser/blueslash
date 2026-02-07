@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronDown, Home, Users, Crown } from 'lucide-react';
 import { useHousehold } from '../hooks/useHousehold';
 import { useAuth } from '../hooks/useAuth';
+import { getUserRoleById } from '../utils/household';
 
 const HouseholdSwitcher: React.FC = () => {
   const { user } = useAuth();
@@ -11,7 +12,7 @@ const HouseholdSwitcher: React.FC = () => {
 
   const handleSwitchHousehold = async (householdId: string) => {
     if (!user || household?.id === householdId) return;
-    
+
     try {
       setSwitching(true);
       await switchCurrentHousehold(householdId);
@@ -21,11 +22,6 @@ const HouseholdSwitcher: React.FC = () => {
     } finally {
       setSwitching(false);
     }
-  };
-
-  const getUserRole = (householdId: string) => {
-    const userHousehold = user?.households?.find(h => h.householdId === householdId);
-    return userHousehold?.role || 'member';
   };
 
   if (!household || userHouseholds.length <= 1) {
@@ -49,7 +45,7 @@ const HouseholdSwitcher: React.FC = () => {
           {household.name}
         </span>
         <div className="flex items-center space-x-1">
-          {getUserRole(household.id) === 'head' && (
+          {getUserRoleById(user, household.id) === 'head' && (
             <Crown size={16} className="text-mario-yellow" />
           )}
           <ChevronDown 
@@ -75,7 +71,7 @@ const HouseholdSwitcher: React.FC = () => {
               </div>
               
               {userHouseholds.map((h) => {
-                const role = getUserRole(h.id);
+                const role = getUserRoleById(user, h.id);
                 const isCurrentHousehold = h.id === household.id;
                 
                 return (

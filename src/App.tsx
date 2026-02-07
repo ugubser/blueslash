@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { HouseholdProvider, useHousehold } from './hooks/useHousehold';
+import { ToastProvider } from './hooks/useToast';
+import { ToastContainer } from './components/Toast';
 import Header from './components/Header';
 import MobileInstallPrompt from './components/MobileInstallPrompt';
 import Login from './pages/Login';
@@ -84,11 +86,14 @@ const AuthenticatedRoutes: React.FC = () => {
 const App: React.FC = () => {
   return (
     <Router>
-      <AuthProvider>
-        <HouseholdProvider>
-          <AppRoutes />
-        </HouseholdProvider>
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <HouseholdProvider>
+            <AppRoutes />
+            <ToastContainer />
+          </HouseholdProvider>
+        </AuthProvider>
+      </ToastProvider>
     </Router>
   );
 };

@@ -132,23 +132,31 @@ export const updateUserGems = async (userId: string, gemsToAdd: number): Promise
 
 export const onAuthStateChangeRealtime = (callback: (user: User | null) => void): Unsubscribe => {
   let userUnsubscribe: Unsubscribe | null = null;
-  
+  let isCleanedUp = false; // Flag to prevent race conditions
+
   const authUnsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+    // Early exit if already cleaned up
+    if (isCleanedUp) return;
+
     // Clean up previous user subscription
     if (userUnsubscribe) {
       userUnsubscribe();
       userUnsubscribe = null;
     }
-    
+
     if (firebaseUser) {
       // Subscribe to real-time user document updates
       userUnsubscribe = onSnapshot(doc(db, 'users', firebaseUser.uid), (userDoc) => {
+        // Check cleanup flag before invoking callback
+        if (isCleanedUp) return;
+
         if (userDoc.exists()) {
           callback(userDoc.data() as User);
         } else {
           callback(null);
         }
       }, (error) => {
+        if (isCleanedUp) return;
         console.error('Error subscribing to user document:', error);
         callback(null);
       });
@@ -156,9 +164,10 @@ export const onAuthStateChangeRealtime = (callback: (user: User | null) => void)
       callback(null);
     }
   });
-  
+
   // Return cleanup function that unsubscribes from both auth and user document
   return () => {
+    isCleanedUp = true; // Set flag first to prevent callbacks
     authUnsubscribe();
     if (userUnsubscribe) {
       userUnsubscribe();
