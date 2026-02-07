@@ -10,14 +10,12 @@ describe('getUserRole', () => {
     members: ['user-1', 'user-2'],
     inviteLinks: [],
     createdAt: new Date(),
-    updatedAt: new Date(),
   };
 
   const mockHeadUser: User = {
     id: 'user-1',
     email: 'head@test.com',
     displayName: 'Head User',
-    photoURL: null,
     gems: 100,
     households: [
       {
@@ -28,14 +26,12 @@ describe('getUserRole', () => {
     ],
     currentHouseholdId: 'household-1',
     createdAt: new Date(),
-    updatedAt: new Date(),
   };
 
   const mockMemberUser: User = {
     id: 'user-2',
     email: 'member@test.com',
     displayName: 'Member User',
-    photoURL: null,
     gems: 50,
     households: [
       {
@@ -46,7 +42,6 @@ describe('getUserRole', () => {
     ],
     currentHouseholdId: 'household-1',
     createdAt: new Date(),
-    updatedAt: new Date(),
   };
 
   it('should return "head" for head of household', () => {
@@ -90,7 +85,6 @@ describe('getUserRoleById', () => {
     id: 'user-1',
     email: 'test@test.com',
     displayName: 'Test User',
-    photoURL: null,
     gems: 100,
     households: [
       {
@@ -106,7 +100,6 @@ describe('getUserRoleById', () => {
     ],
     currentHouseholdId: 'household-1',
     createdAt: new Date(),
-    updatedAt: new Date(),
   };
 
   it('should return correct role for household-1', () => {
