@@ -4,12 +4,17 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "dev": "vite",
     "build": "tsc -b && vite build --mode emulator && node scripts/process-messaging-sw.js --mode emulator",
     "build:prod": "tsc -b && vite build --mode production && node scripts/process-messaging-sw.js --mode production",
     "lint": "eslint .",
     "preview": "vite preview",
     "preview:emulator": "vite preview --mode emulator",
     "preview:prod": "vite preview --mode production",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "emulators": "firebase emulators:start",
     "serve:emulator": "npm run build && firebase serve --only hosting --port 5003",
     "deploy": "npm run build:prod && firebase deploy"
@@ -27,18 +32,25 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
+    "@vitest/ui": "^4.0.18",
     "autoprefixer": "^10.4.16",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "jsdom": "^28.0.0",
     "postcss": "^8.4.32",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
     "vite": "^6.3.5",
-    "vite-plugin-pwa": "^0.17.4"
+    "vite-plugin-pwa": "^0.17.4",
+    "vitest": "^4.0.18"
   }
 }
