@@ -23,6 +23,8 @@ dist-ssr
 .firebase
 firebase-debug.log
 firestore-debug.log
+extensions/firestore-send-email.env
+extensions/firestore-send-email.secret
 
 # Editor directories and files
 .vscode/*

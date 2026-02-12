@@ -17,7 +17,8 @@
     "test:coverage": "vitest run --coverage",
     "emulators": "firebase emulators:start",
     "serve:emulator": "npm run build && firebase serve --only hosting --port 5003",
-    "deploy": "npm run build:prod && firebase deploy"
+    "predeploy:env": "node scripts/generate-env.js",
+    "deploy": "npm run build:prod && npm run predeploy:env && firebase deploy"
   },
   "dependencies": {
     "@types/uuid": "^9.0.7",

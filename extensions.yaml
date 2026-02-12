@@ -1,0 +1,9 @@
+apiVersion: firebase/v1beta
+kind: ExtensionsManifest
+metadata:
+  source: firebase.json
+resources:
+  - name: firestore-send-email
+    type: firebase/firestore-send-email@0.2.4
+    paramsFile: ./firestore-send-email.env
+    secretsFile: ./firestore-send-email.secret
