@@ -52,6 +52,80 @@ const buildTaskTargetUrl = (taskId: string, taskStatus?: string): string => {
   return `/dashboard?${params.toString()}`;
 };
 
+function buildEmailHtml(payload: NotificationPayload): string {
+  const targetUrl = payload.data?.targetUrl
+    ? `https://blueslash.tribecans.com${payload.data.targetUrl}`
+    : 'https://blueslash.tribecans.com';
+  return [
+    '<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#f7f7f7;border-radius:8px">',
+    `<h2 style="color:#3182CE;margin:0 0 12px">${payload.title}</h2>`,
+    `<p style="color:#333;font-size:16px;line-height:1.5;margin:0 0 20px">${payload.body}</p>`,
+    `<a href="${targetUrl}" style="display:inline-block;padding:10px 20px;background:#3182CE;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold">View in BlueSlash</a>`,
+    '<p style="color:#999;font-size:12px;margin:20px 0 0">You received this email because you have email notifications enabled in BlueSlash.</p>',
+    '</div>',
+  ].join('');
+}
+
+async function sendEmailNotification(
+  userId: string,
+  payload: NotificationPayload,
+  options: SendNotificationOptions = {}
+): Promise<boolean> {
+  try {
+    const userDoc = await admin.firestore().collection('users').doc(userId).get();
+    const userData = userDoc.data();
+
+    if (!userData?.email || !userData?.notificationPreferences?.email) {
+      console.log(`User ${userId} does not have email notifications enabled`);
+      return false;
+    }
+
+    const preferences = userData.notificationPreferences || {};
+    if (options.requiredPreferences && options.requiredPreferences.length > 0) {
+      const shouldSend = options.requiredPreferences.every((preference) => {
+        const value = preferences[preference];
+        if (preference === 'taskAlerts' || preference === 'kitchenPosts' || preference === 'directMessages') {
+          return value !== false;
+        }
+        return Boolean(value);
+      });
+
+      if (!shouldSend) {
+        console.log(`User ${userId} opted out of ${options.requiredPreferences.join(', ')} email notifications`);
+        return false;
+      }
+    }
+
+    const html = buildEmailHtml(payload);
+    await admin.firestore().collection('mail').add({
+      to: userData.email,
+      message: {
+        subject: payload.title,
+        html,
+        text: `${payload.title}\n\n${payload.body}`,
+      },
+    });
+
+    console.log(`✅ Email notification queued for ${userId}`);
+    return true;
+  } catch (error) {
+    console.error(`❌ Failed to queue email notification for ${userId}:`, error);
+    return false;
+  }
+}
+
+export async function sendNotification(
+  userId: string,
+  payload: NotificationPayload,
+  options: SendNotificationOptions = {}
+): Promise<{ push: boolean; email: boolean }> {
+  const [push, email] = await Promise.all([
+    sendPushNotification(userId, payload, options),
+    sendEmailNotification(userId, payload, options),
+  ]);
+  return { push, email };
+}
+
 // Send push notification to a specific user
 export async function sendPushNotification(
   userId: string,
@@ -190,11 +264,11 @@ async function notifyHouseholdAboutAvailableTask(taskId: string, taskData: any):
 
     const results = await Promise.allSettled(
       recipients.map((userId) =>
-        sendPushNotification(userId, payload, { requiredPreferences: ['taskAlerts'] })
+        sendNotification(userId, payload, { requiredPreferences: ['taskAlerts'] })
       )
     );
 
-    const sent = results.filter((result) => result.status === 'fulfilled' && result.value).length;
+    const sent = results.filter((result) => result.status === 'fulfilled' && (result.value.push || result.value.email)).length;
     const skipped = recipients.length - sent;
 
     console.log(`📨 Sent new task notification for task ${taskId} to ${sent} members (${skipped} skipped)`);
@@ -448,9 +522,9 @@ async function processScheduledNotifications() {
     };
 
     // Send notification
-    const sendPromise = sendPushNotification(notificationData.userId, payload, {
+    const sendPromise = sendNotification(notificationData.userId, payload, {
       requiredPreferences: ['taskReminders']
-    });
+    }).then((result) => result.push || result.email);
     sendPromises.push(sendPromise);
 
     // Mark as sent

@@ -216,7 +216,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
               <ToggleControl
                 id="task-alerts"
                 checked={localPreferences.taskAlerts}
-                disabled={!localPreferences.push}
+                disabled={!localPreferences.push && !localPreferences.email}
                 onChange={(value) => handlePreferenceChange('taskAlerts', value)}
                 useMobileStyle={isMobileViewport}
               />
@@ -234,7 +234,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
               <ToggleControl
                 id="kitchen-post-alerts"
                 checked={localPreferences.kitchenPosts}
-                disabled={!localPreferences.push}
+                disabled={!localPreferences.push && !localPreferences.email}
                 onChange={(value) => handlePreferenceChange('kitchenPosts', value)}
                 useMobileStyle={isMobileViewport}
               />
@@ -252,7 +252,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
               <ToggleControl
                 id="task-reminders"
                 checked={localPreferences.taskReminders}
-                disabled={!localPreferences.push}
+                disabled={!localPreferences.push && !localPreferences.email}
                 onChange={(value) => handlePreferenceChange('taskReminders', value)}
                 useMobileStyle={isMobileViewport}
               />
@@ -270,7 +270,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
               <ToggleControl
                 id="direct-message-alerts"
                 checked={localPreferences.directMessages}
-                disabled={!localPreferences.push}
+                disabled={!localPreferences.push && !localPreferences.email}
                 onChange={(value) => handlePreferenceChange('directMessages', value)}
                 useMobileStyle={isMobileViewport}
               />
@@ -288,7 +288,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
               <ToggleControl
                 id="verification-requests"
                 checked={localPreferences.verificationRequests}
-                disabled={!localPreferences.push}
+                disabled={!localPreferences.push && !localPreferences.email}
                 onChange={(value) => handlePreferenceChange('verificationRequests', value)}
                 useMobileStyle={isMobileViewport}
               />
@@ -300,13 +300,13 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
                   Email Notifications
                 </label>
                 <p className="text-sm text-gray-500">
-                  Receive notifications via email (coming soon)
+                  Receive notifications via email
                 </p>
               </div>
               <ToggleControl
                 id="email-notifications"
                 checked={localPreferences.email}
-                disabled={true}
+                disabled={false}
                 onChange={(value) => handlePreferenceChange('email', value)}
                 useMobileStyle={isMobileViewport}
               />

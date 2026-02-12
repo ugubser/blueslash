@@ -2,7 +2,7 @@ import * as admin from 'firebase-admin';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { onDocumentCreated } from 'firebase-functions/v2/firestore';
-import { sendPushNotification } from './notifications';
+import { sendNotification } from './notifications';
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -164,7 +164,7 @@ export const onKitchenPostCreated = onDocumentCreated('kitchenPosts/{postId}', a
 
   await Promise.allSettled(
     recipients.map((userId) =>
-      sendPushNotification(userId, payload, { requiredPreferences: ['kitchenPosts'] }),
+      sendNotification(userId, payload, { requiredPreferences: ['kitchenPosts'] }),
     ),
   );
 });
@@ -194,5 +194,5 @@ export const onDirectMessageCreated = onDocumentCreated('directMessages/{message
     requireInteraction: false,
   } as const;
 
-  await sendPushNotification(recipientId, payload, { requiredPreferences: ['directMessages'] });
+  await sendNotification(recipientId, payload, { requiredPreferences: ['directMessages'] });
 });
