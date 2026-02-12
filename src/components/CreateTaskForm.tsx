@@ -7,6 +7,7 @@ import { useHousehold } from '../hooks/useHousehold';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { parseMarkdownChecklist, hasChecklistItems } from '../utils/checklist';
 import MarkdownToolbar from './MarkdownToolbar';
+import { startOfDay, addDays, parseISO } from 'date-fns';
 import type { Task, RecurrenceConfig } from '../types';
 
 interface CreateTaskFormProps {
@@ -33,10 +34,21 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
   const isEditing = !!editTask;
-  
+
   // Determine if gem editing should be disabled or hidden
   const isGemEditingDisabled = !isEditing && hasUsedAI && household?.allowGemOverride === false;
   const shouldHideGemInput = household?.allowGemOverride === false;
+
+  // Helper to convert date string from form to Date at local midnight
+  const parseDueDateString = (dateString: string): Date => {
+    if (!dateString) {
+      // Default to 3 days from now at midnight local time
+      return startOfDay(addDays(new Date(), 3));
+    }
+    // Parse the date string as local date (not UTC)
+    // Adding 'T00:00:00' ensures it's interpreted as local midnight
+    return parseISO(dateString + 'T00:00:00');
+  };
 
   // Populate form when editing
   useEffect(() => {
@@ -111,7 +123,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
           title: title.trim(),
           description: description.trim(),
           status: isDraft ? 'draft' : 'published',
-          dueDate: new Date(dueDate || Date.now() + 3 * 24 * 60 * 60 * 1000),
+          dueDate: parseDueDateString(dueDate),
           gems: finalGems,
           checklistGroups
         };
@@ -129,7 +141,7 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
           title: title.trim(),
           description: description.trim(),
           status: isDraft ? 'draft' : 'published',
-          dueDate: new Date(dueDate || Date.now() + 3 * 24 * 60 * 60 * 1000),
+          dueDate: parseDueDateString(dueDate),
           gems: finalGems,
           verifications: [],
         };

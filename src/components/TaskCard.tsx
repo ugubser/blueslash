@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, Coins, User, CheckCircle, Edit, Repeat, Trash2, ArrowLeft, X } from 'lucide-react';
+import { differenceInDays, differenceInMilliseconds } from 'date-fns';
 import type { Task, ChecklistGroup } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
@@ -163,10 +164,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask, isHighlighted = f
   const formatDueDate = (date: Date) => {
     const now = new Date();
     const dueDate = new Date(date);
-    const diffTime = dueDate.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffMs = differenceInMilliseconds(dueDate, now);
+    const diffDays = differenceInDays(dueDate, now);
 
-    if (diffDays < 0) return 'Overdue';
+    if (diffMs < 0) return 'Overdue';
     if (diffDays === 0) return 'Due today';
     if (diffDays === 1) return 'Due tomorrow';
     return `Due in ${diffDays} days`;

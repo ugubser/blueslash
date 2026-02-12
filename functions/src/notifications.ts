@@ -2,6 +2,7 @@ import * as admin from 'firebase-admin';
 import { onCall } from 'firebase-functions/v2/https';
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { endOfDay, subDays, addMinutes, differenceInMilliseconds, differenceInHours, differenceInDays, isBefore } from 'date-fns';
 
 const ALLOWED_CORS_ORIGINS = [
   'http://localhost:5173',
@@ -202,7 +203,6 @@ async function notifyHouseholdAboutAvailableTask(taskId: string, taskData: any):
   }
 }
 
-const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const CATCH_UP_DELAY_MINUTES = 5;
 
 const toDate = (value: any): Date => {
@@ -219,13 +219,13 @@ const toDate = (value: any): Date => {
 };
 
 const getFriendlyDueText = (now: Date, dueDate: Date): string => {
-  const diffMs = dueDate.getTime() - now.getTime();
+  const diffMs = differenceInMilliseconds(dueDate, now);
 
   if (diffMs <= 0) {
     return 'now';
   }
 
-  const diffHours = diffMs / (60 * 60 * 1000);
+  const diffHours = differenceInHours(dueDate, now);
   if (diffHours < 1) {
     return 'within the next hour';
   }
@@ -243,7 +243,7 @@ const getFriendlyDueText = (now: Date, dueDate: Date): string => {
     return 'tomorrow';
   }
 
-  const diffDays = Math.ceil(diffHours / 24);
+  const diffDays = differenceInDays(dueDate, now);
   return `in ${diffDays} days`;
 };
 
@@ -274,13 +274,13 @@ export const scheduleTaskReminders = onDocumentWritten('tasks/{taskId}', async (
   // Check if task was just claimed (status changed from published to claimed)
   if (before.status !== 'claimed' && after.status === 'claimed' && after.claimedBy) {
     const dueDateRaw = toDate(after.dueDate);
-    const dueDate = new Date(dueDateRaw);
-    // Treat due dates as end-of-day to better align with user expectations when only a date is supplied
-    dueDate.setHours(23, 59, 0, 0);
+    // Treat due dates as end-of-day to better align with user expectations
+    // Since the form now creates dates at local midnight, we extend to end of that day
+    const dueDate = endOfDay(dueDateRaw);
     const now = new Date();
 
     console.log(`Task ${taskId} was claimed by ${after.claimedBy}, scheduling reminders`);
-    console.log(`Due date: ${dueDate}, Current time: ${now}`);
+    console.log(`Due date: ${dueDate.toISOString()}, Current time: ${now.toISOString()}`);
 
     // Calculate reminder dates: 7 days, 4 days, 2 days, 1 day before due date
     const reminderDays = [7, 4, 2, 1];
@@ -288,13 +288,13 @@ export const scheduleTaskReminders = onDocumentWritten('tasks/{taskId}', async (
     let catchUpScheduled = false;
 
     for (const days of reminderDays) {
-      const reminderDate = new Date(dueDate);
-      reminderDate.setDate(reminderDate.getDate() - days);
+      // Calculate reminder date using date-fns for accuracy
+      const reminderDate = subDays(dueDate, days);
 
-      console.log(`Checking reminder ${days} days before: ${reminderDate} (now: ${now})`);
+      console.log(`Checking reminder ${days} days before: ${reminderDate.toISOString()} (now: ${now.toISOString()})`);
 
       // Only schedule if reminder date is in the future
-      if (reminderDate > now) {
+      if (isBefore(now, reminderDate)) {
         console.log(`✅ Scheduling reminder for ${days} days before due date`);
         reminders.push({
           taskId,
@@ -311,11 +311,11 @@ export const scheduleTaskReminders = onDocumentWritten('tasks/{taskId}', async (
         console.log(`❌ Skipping reminder for ${days} days before (date has passed)`);
 
         // If the reminder would have fired in the past but the task is still pending, schedule an immediate catch-up reminder
-        if (!catchUpScheduled && dueDate > now) {
-          const catchUpDate = new Date(now.getTime() + CATCH_UP_DELAY_MINUTES * 60 * 1000);
-          const daysRemaining = Math.max(0, Math.floor((dueDate.getTime() - now.getTime()) / DAY_IN_MS));
+        if (!catchUpScheduled && isBefore(now, dueDate)) {
+          const catchUpDate = addMinutes(now, CATCH_UP_DELAY_MINUTES);
+          const daysRemaining = Math.max(0, differenceInDays(dueDate, now));
 
-          console.log(`⚠️  Scheduling catch-up reminder for task ${taskId} at ${catchUpDate}`);
+          console.log(`⚠️  Scheduling catch-up reminder for task ${taskId} at ${catchUpDate.toISOString()}`);
           reminders.push({
             taskId,
             userId: after.claimedBy,
