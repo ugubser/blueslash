@@ -252,7 +252,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask, isHighlighted = f
       {task.status === 'completed' && (
         <div className="mb-3">
           <p className="text-sm text-gray-600 mb-2">
-            Verification: {task.verifications.filter(v => v.verified).length} / {Math.ceil(task.verifications.length * 0.5)} required
+            Verification: {task.verifications.filter(v => v.verified).length} / {Math.ceil(members.length * 0.5)} required
           </p>
         </div>
       )}
