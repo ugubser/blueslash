@@ -37,7 +37,7 @@ DEFAULT_REPLY_TO=${env.MAIL_REPLY_TO || ''}
 MAIL_COLLECTION=mail
 USERS_COLLECTION=users
 TEMPLATES_COLLECTION=mail_templates
-TTL_EXPIRE_TYPE=Never
+TTL_EXPIRE_TYPE=never
 TTL_EXPIRE_VALUE=1
 TLS_OPTIONS={}`;
 writeFileSync(resolve(rootDir, 'extensions/firestore-send-email.env'), extensionEnv + '\n');

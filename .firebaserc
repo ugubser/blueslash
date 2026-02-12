@@ -1,5 +1,13 @@
 {
   "projects": {
     "default": "blueslash-7bcdd"
+  },
+  "targets": {},
+  "etags": {
+    "blueslash-7bcdd": {
+      "extensionInstances": {
+        "firestore-send-email": "2120e66b3a31f76cdab401523bdef5f1e2573f1305c546d09fec6d8a337ec316"
+      }
+    }
   }
 }
