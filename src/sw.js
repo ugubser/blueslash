@@ -68,12 +68,12 @@ try {
         body: payload.notification?.body || 'You have a new notification',
         icon: payload.notification?.icon || '/icon-192x192.png',
         badge: '/badge-72x72.png',
-        tag: payload.data?.taskId || 'general',
+        tag: payload.data?.type || payload.data?.taskId || 'general',
         data: payload.data,
         actions: [
           {
             action: 'view',
-            title: 'View Task',
+            title: 'View',
             icon: '/vite.svg'
           },
           {
@@ -95,33 +95,33 @@ try {
 // Handle notification click
 self.addEventListener('notificationclick', function(event) {
   console.log('[sw] Notification click received:', event);
-  
+
   event.notification.close();
-  
+
   if (event.action === 'dismiss') {
     return;
   }
-  
-  // Handle notification click - open app and navigate to task
+
+  // Use targetUrl from notification data, fall back to home
+  const data = event.notification.data;
+  const targetPath = data?.targetUrl || '/';
+
   event.waitUntil(
     clients.matchAll({
       type: 'window',
       includeUncontrolled: true
     }).then(function(clientList) {
-      const data = event.notification.data;
-      const url = data?.taskId ? `/#/tasks/${data.taskId}` : '/';
-      
-      // Check if app is already open
+      // If app is already open, navigate it to the target URL
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
-        if (client.url.includes(url) && 'focus' in client) {
-          return client.focus();
+        if ('focus' in client && 'navigate' in client) {
+          return client.navigate(targetPath).then(function(c) { return c.focus(); });
         }
       }
-      
+
       // Open new window if app is not open
       if (clients.openWindow) {
-        return clients.openWindow(url);
+        return clients.openWindow(targetPath);
       }
     })
   );
@@ -144,12 +144,12 @@ self.addEventListener('push', function(event) {
           body: payload.notification?.body || payload.body || 'You have a new notification',
           icon: payload.notification?.icon || '/icon-192x192.png',
           badge: '/badge-72x72.png',
-          tag: payload.data?.taskId || payload.taskId || 'general',
+          tag: payload.data?.type || payload.data?.taskId || payload.taskId || 'general',
           data: payload.data || payload,
           actions: [
             {
               action: 'view',
-              title: 'View Task',
+              title: 'View',
               icon: '/vite.svg'
             },
             {

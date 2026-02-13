@@ -49,7 +49,7 @@ const buildTaskTargetUrl = (taskId: string, taskStatus?: string): string => {
   if (taskStatus) {
     params.set('taskStatus', taskStatus);
   }
-  return `/dashboard?${params.toString()}`;
+  return `/task-board?${params.toString()}`;
 };
 
 function buildEmailHtml(payload: NotificationPayload): string {
@@ -189,7 +189,7 @@ export async function sendPushNotification(
           actions: payload.actions || [
             {
               action: 'view',
-              title: 'View Task'
+              title: 'View'
             },
             {
               action: 'dismiss',
