@@ -352,7 +352,7 @@ const KitchenBoard: React.FC = () => {
 
           {/* Desktop fridge */}
           <div className="hidden lg:block">
-            <div className="relative w-full bg-gradient-to-br from-blue-100 via-white to-blue-200 border-2 border-blue-700 rounded-[2rem] shadow-xl aspect-[4/5] overflow-hidden p-4">
+            <div className="relative w-full bg-gradient-to-br from-blue-100 via-white to-blue-200 border-2 border-blue-700 rounded-[2rem] shadow-xl aspect-[4/3] overflow-hidden p-4">
               <div className="absolute inset-3 bg-white rounded-[1.5rem] shadow-inner" />
               <div className="absolute inset-5">
                 {fridgePosts.map((post) => {
@@ -368,16 +368,16 @@ const KitchenBoard: React.FC = () => {
                       type="button"
                       key={post.id}
                       onClick={() => openPostModal(post)}
-                      className="absolute w-40 h-40 bg-yellow-100 border-2 border-yellow-400 shadow-md flex flex-col justify-between p-3 hover:shadow-xl transition-shadow"
+                      className="absolute w-36 h-36 bg-yellow-100 border-2 border-yellow-400 shadow-md flex flex-col justify-between p-2.5 hover:shadow-xl transition-shadow overflow-hidden"
                       style={style}
                     >
-                      <div>
-                        <p className="font-bold text-mario-blue text-sm mb-1 line-clamp-1">{post.title}</p>
+                      <div className="min-w-0">
+                        <p className="font-bold text-mario-blue text-xs mb-1 line-clamp-1">{post.title}</p>
                         <p className="text-xs text-gray-700 line-clamp-3">{post.preview}</p>
                       </div>
                       {post.attachment && (
-                        <div className="flex items-center gap-2 text-xs text-gray-600">
-                          {post.attachment.type === 'pdf' ? <FileText size={16} /> : <ImageIcon size={16} />}
+                        <div className="flex items-center gap-1 text-xs text-gray-600 min-w-0">
+                          {post.attachment.type === 'pdf' ? <FileText size={12} className="flex-shrink-0" /> : <ImageIcon size={12} className="flex-shrink-0" />}
                           <span className="truncate">{post.attachment.fileName}</span>
                         </div>
                       )}
