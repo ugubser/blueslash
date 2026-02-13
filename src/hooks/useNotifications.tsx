@@ -113,8 +113,23 @@ export const useNotifications = (): UseNotificationsReturn => {
         
         // Setup foreground message handler
         notificationService.setupForegroundMessageHandler();
+
+        // Set default preferences with both push and email enabled
+        if (user && !user.notificationPreferences?.push) {
+          const defaultPrefs: NotificationPreferences = {
+            push: true,
+            email: true,
+            taskAlerts: true,
+            kitchenPosts: true,
+            directMessages: true,
+            taskReminders: false,
+            verificationRequests: false,
+          };
+          await notificationService.updateNotificationPreferences(user.id, defaultPrefs);
+          setPreferences(defaultPrefs);
+        }
       }
-      
+
       return result;
     } catch (error) {
       console.error('Permission request failed:', error);
