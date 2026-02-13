@@ -200,13 +200,6 @@
     transform: translateY(2px);
   }
 
-  /* Tiptap toolbar button */
-  .tiptap-toolbar-btn {
-    @apply p-1.5 rounded-md border border-gray-300 text-gray-600;
-    @apply hover:bg-gray-100 hover:text-gray-800 transition-colors duration-100;
-    @apply cursor-pointer;
-  }
-
   /* Tiptap editor content area */
   .tiptap-editor-content .ProseMirror {
     @apply w-full px-3 py-2 border-2 border-gray-300 rounded-lg;

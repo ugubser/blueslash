@@ -74,87 +74,87 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
 
   return (
     <div>
-      <div className="flex items-center gap-1 mb-2 p-1.5 bg-gray-50 rounded-lg border-2 border-gray-200 flex-wrap">
+      <div className="flex items-center gap-2 mb-2 p-2 bg-gray-50 rounded-lg border-2 border-gray-200 flex-wrap">
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`tiptap-toolbar-btn ${editor.isActive('bold') ? 'bg-blue-100 text-mario-blue border-mario-blue' : ''}`}
+          className="mario-button-blue flex items-center gap-2 px-3 py-1 text-sm"
           title="Bold"
         >
-          <Bold size={16} />
+          <Bold size={14} />
+          <span className="hidden md:inline">Bold</span>
         </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`tiptap-toolbar-btn ${editor.isActive('italic') ? 'bg-blue-100 text-mario-blue border-mario-blue' : ''}`}
+          className="mario-button-blue flex items-center gap-2 px-3 py-1 text-sm"
           title="Italic"
         >
-          <Italic size={16} />
+          <Italic size={14} />
+          <span className="hidden md:inline">Italic</span>
         </button>
-
-        <div className="w-px h-5 bg-gray-300 mx-0.5" />
-
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={`tiptap-toolbar-btn ${editor.isActive('heading', { level: 2 }) ? 'bg-blue-100 text-mario-blue border-mario-blue' : ''}`}
+          className="mario-button-blue flex items-center gap-2 px-3 py-1 text-sm"
           title="Heading 2"
         >
-          <Heading2 size={16} />
+          <Heading2 size={14} />
+          <span className="hidden md:inline">H2</span>
         </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          className={`tiptap-toolbar-btn ${editor.isActive('heading', { level: 3 }) ? 'bg-blue-100 text-mario-blue border-mario-blue' : ''}`}
+          className="mario-button-blue flex items-center gap-2 px-3 py-1 text-sm"
           title="Heading 3"
         >
-          <Heading3 size={16} />
+          <Heading3 size={14} />
+          <span className="hidden md:inline">H3</span>
         </button>
-
-        <div className="w-px h-5 bg-gray-300 mx-0.5" />
-
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`tiptap-toolbar-btn ${editor.isActive('bulletList') ? 'bg-blue-100 text-mario-blue border-mario-blue' : ''}`}
+          className="mario-button-blue flex items-center gap-2 px-3 py-1 text-sm"
           title="Bullet List"
         >
-          <List size={16} />
+          <List size={14} />
+          <span className="hidden md:inline">List</span>
         </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={`tiptap-toolbar-btn ${editor.isActive('orderedList') ? 'bg-blue-100 text-mario-blue border-mario-blue' : ''}`}
+          className="mario-button-blue flex items-center gap-2 px-3 py-1 text-sm"
           title="Ordered List"
         >
-          <ListOrdered size={16} />
+          <ListOrdered size={14} />
+          <span className="hidden md:inline">Ordered</span>
         </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleTaskList().run()}
-          className={`tiptap-toolbar-btn ${editor.isActive('taskList') ? 'bg-blue-100 text-mario-blue border-mario-blue' : ''}`}
+          className="mario-button-blue flex items-center gap-2 px-3 py-1 text-sm"
           title="Checklist"
         >
-          <CheckSquare size={16} />
+          <CheckSquare size={14} />
+          <span className="hidden md:inline">Checklist</span>
         </button>
-
-        <div className="w-px h-5 bg-gray-300 mx-0.5" />
-
         <button
           type="button"
           onClick={setLink}
-          className={`tiptap-toolbar-btn ${editor.isActive('link') ? 'bg-blue-100 text-mario-blue border-mario-blue' : ''}`}
+          className="mario-button-blue flex items-center gap-2 px-3 py-1 text-sm"
           title="Link"
         >
-          <LinkIcon size={16} />
+          <LinkIcon size={14} />
+          <span className="hidden md:inline">Link</span>
         </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-          className={`tiptap-toolbar-btn ${editor.isActive('codeBlock') ? 'bg-blue-100 text-mario-blue border-mario-blue' : ''}`}
+          className="mario-button-blue flex items-center gap-2 px-3 py-1 text-sm"
           title="Code Block"
         >
-          <Code size={16} />
+          <Code size={14} />
+          <span className="hidden md:inline">Code</span>
         </button>
       </div>
 
