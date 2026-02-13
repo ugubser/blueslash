@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Coins, Calendar, FileText, Edit, Repeat, Brain, Loader } from 'lucide-react';
+import { Plus, Calendar, FileText, Edit, Repeat, Brain, Loader } from 'lucide-react';
 import { createTask, updateTask } from '../services/tasks';
 import { deleteField } from 'firebase/firestore';
 import { useAuth } from '../hooks/useAuth';
@@ -283,14 +283,14 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
 
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
-                <Coins size={16} className="inline mr-1" />
+                <span className="inline mr-1">💎</span>
                 Gem Reward
               </label>
               <div className="space-y-2">
                 {shouldHideGemInput ? (
                   // Show only gem display when overrides are disabled
                   <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border-2 border-gray-200">
-                    <Coins size={16} className="text-mario-blue" />
+                    <span>💎</span>
                     <span className="font-bold text-lg">{gems} gems</span>
                     <span className="text-xs text-gray-500 ml-2">
                       {isEditing && editTask?.status !== 'draft' 

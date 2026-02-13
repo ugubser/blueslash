@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, Coins, Crown, Medal, Award } from 'lucide-react';
+import { Trophy, Crown, Medal, Award } from 'lucide-react';
 import { useHousehold } from '../hooks/useHousehold';
 import { formatNumber } from '../utils/formatting';
 
@@ -77,7 +77,7 @@ const Leaderboard: React.FC = () => {
               </div>
 
               <div className="gem-counter ml-auto">
-                <Coins className="coin-icon" size={16} />
+                <span className="gem-icon">💎</span>
                 <span className="font-bold">{formatNumber(member.gems)}</span>
               </div>
             </div>

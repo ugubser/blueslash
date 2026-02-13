@@ -1,5 +1,5 @@
 import React from 'react';
-import { Coins, User, LogOut, Settings } from 'lucide-react';
+import { User, LogOut, Settings } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
@@ -29,30 +29,30 @@ const Header: React.FC = () => {
               <nav className="flex items-center gap-2">
                 <Link
                   to="/task-board"
-                  className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors ${
+                  className={`flex items-center gap-2 px-3 py-1.5 text-xs whitespace-nowrap ${
                     location.pathname === '/task-board'
-                      ? 'bg-mario-blue text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'mario-button-blue'
+                      : 'mario-button-blue-muted'
                   }`}
                 >
                   Task Board
                 </Link>
                 <Link
                   to="/kitchen-board"
-                  className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors ${
+                  className={`flex items-center gap-2 px-3 py-1.5 text-xs whitespace-nowrap ${
                     location.pathname === '/kitchen-board'
-                      ? 'bg-mario-blue text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'mario-button-blue'
+                      : 'mario-button-blue-muted'
                   }`}
                 >
                   Kitchen Board
                 </Link>
                 <Link
                   to={location.pathname === '/household-settings' ? '/task-board' : '/household-settings'}
-                  className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors flex items-center gap-2 ${
+                  className={`flex items-center gap-2 px-3 py-1.5 text-xs whitespace-nowrap ${
                     location.pathname === '/household-settings'
-                      ? 'bg-mario-blue text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'mario-button-blue'
+                      : 'mario-button-blue-muted'
                   }`}
                 >
                   <Settings size={14} />
@@ -64,8 +64,8 @@ const Header: React.FC = () => {
 
           {user && (
             <div className="flex items-center gap-4">
-              <div className="gem-counter text-sm">
-                <Coins className="coin-icon" size={16} />
+              <div className="gem-counter text-xs">
+                <span className="gem-icon">💎</span>
                 <span>{formatNumber(user.gems)}</span>
               </div>
 
@@ -79,7 +79,7 @@ const Header: React.FC = () => {
 
               <button
                 onClick={signOut}
-                className="mario-button-blue flex items-center gap-2 text-xs px-3 py-1.5"
+                className="mario-button flex items-center gap-2 text-xs px-3 py-1.5 whitespace-nowrap"
               >
                 <LogOut size={14} />
                 Sign Out
@@ -98,25 +98,25 @@ const Header: React.FC = () => {
             
             {user && (
               <div className="flex items-center gap-2 flex-shrink-0">
-                <div className="gem-counter text-sm">
-                  <Coins className="coin-icon" size={16} />
+                <div className="gem-counter text-xs">
+                  <span className="gem-icon">💎</span>
                   <span>{formatNumber(user.gems)}</span>
                 </div>
                 
                 <Link
                   to={location.pathname === '/household-settings' ? '/task-board' : '/household-settings'}
-                  className={`p-2 rounded-lg transition-colors ${
-                    location.pathname === '/household-settings' 
-                      ? 'bg-mario-blue text-white' 
-                      : 'text-gray-700 hover:bg-gray-100'
+                  className={`p-2 ${
+                    location.pathname === '/household-settings'
+                      ? 'mario-button-blue'
+                      : 'mario-button-blue-muted'
                   }`}
                 >
                   <Settings size={18} />
                 </Link>
-                
+
                 <button
                   onClick={signOut}
-                  className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="mario-button p-2"
                 >
                   <LogOut size={18} />
                 </button>
@@ -142,20 +142,20 @@ const Header: React.FC = () => {
           <div className="mt-1.5 flex items-center gap-2">
             <Link
               to="/task-board"
-              className={`flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+              className={`flex-1 text-center px-3 py-1.5 text-xs ${
                 location.pathname === '/task-board'
-                  ? 'bg-mario-blue text-white'
-                  : 'bg-white/70 text-gray-700'
+                  ? 'mario-button-blue'
+                  : 'mario-button-blue-muted'
               }`}
             >
               Task Board
             </Link>
             <Link
               to="/kitchen-board"
-              className={`flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+              className={`flex-1 text-center px-3 py-1.5 text-xs ${
                 location.pathname === '/kitchen-board'
-                  ? 'bg-mario-blue text-white'
-                  : 'bg-white/70 text-gray-700'
+                  ? 'mario-button-blue'
+                  : 'mario-button-blue-muted'
               }`}
             >
               Kitchen Board

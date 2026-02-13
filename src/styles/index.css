@@ -39,6 +39,19 @@
     transform: translateY(2px);
   }
 
+  .mario-button-blue-muted {
+    @apply text-gray-700 px-4 py-2 rounded-lg border-2 border-white/50 shadow-md;
+    @apply hover:bg-blue-500 hover:text-white active:scale-95 transition-all duration-150;
+    @apply font-bold text-sm tracking-wide;
+    background: linear-gradient(145deg, #e2e8f0, #cbd5e1);
+    box-shadow: 0 3px 0 #94a3b8, 0 6px 15px rgba(0,0,0,0.15);
+  }
+
+  .mario-button-blue-muted:active {
+    box-shadow: 0 1px 0 #94a3b8, 0 3px 8px rgba(0,0,0,0.15);
+    transform: translateY(2px);
+  }
+
   .mario-card {
     @apply bg-white rounded-xl border-2 border-gray-300 shadow-lg p-4;
     background: linear-gradient(145deg, #ffffff, #f7fafc);
@@ -46,14 +59,16 @@
   }
 
   .gem-counter {
-    @apply flex items-center gap-2 bg-mario-yellow text-black px-3 py-1.5 rounded-full;
-    @apply border-2 border-yellow-600 shadow-md font-bold;
-    background: linear-gradient(145deg, #d69e2e, #b7791f);
+    @apply flex items-center gap-2 text-white px-3 py-1.5 rounded-full;
+    @apply border-2 border-blue-700 shadow-md font-bold;
+    background: linear-gradient(145deg, #4299e1, #2b6cb0);
   }
 
-  .coin-icon {
-    @apply w-6 h-6 text-yellow-800;
-    animation: bounce-coin 0.6s ease-in-out infinite;
+  .gem-icon {
+    display: inline-block;
+    font-size: 1rem;
+    line-height: 1;
+    animation: bounce-gem 0.6s ease-in-out infinite;
   }
 
   .task-card {
@@ -288,7 +303,7 @@
   }
 }
 
-@keyframes bounce-coin {
+@keyframes bounce-gem {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50% { transform: translateY(-4px) rotate(180deg); }
 }

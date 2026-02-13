@@ -136,10 +136,10 @@ const TaskBoard: React.FC = () => {
                 <button
                   key={status}
                   onClick={() => toggleFilter(status)}
-                  className={`rounded-md font-bold text-xs transition-colors px-2.5 py-1.5 ${
+                  className={`px-2.5 py-1.5 text-xs ${
                     activeFilters.has(status)
-                      ? 'bg-mario-blue text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'mario-button-blue'
+                      : 'mario-button-blue-muted'
                   }`}
                   title={label}
                 >

@@ -26,7 +26,7 @@ export default {
         'mario': ['Mario', 'Arial', 'sans-serif'],
       },
       animation: {
-        'bounce-coin': 'bounce 0.6s ease-in-out',
+        'bounce-gem': 'bounce 0.6s ease-in-out',
         'glow': 'glow 2s ease-in-out infinite alternate',
       },
       keyframes: {

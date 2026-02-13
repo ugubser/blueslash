@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogIn, Home, Coins, CheckCircle, ExternalLink } from 'lucide-react';
+import { LogIn, Home, CheckCircle, ExternalLink } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import TermsModal from '../components/TermsModal';
 
@@ -46,7 +46,7 @@ const Login: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3 text-left">
-              <Coins className="text-mario-yellow flex-shrink-0" size={24} />
+              <span className="text-2xl flex-shrink-0">💎</span>
               <div>
                 <h3 className="font-bold text-gray-800">Earn Gems</h3>
                 <p className="text-sm text-gray-600 font-normal">

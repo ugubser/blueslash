@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, Coins, User, CheckCircle, Edit, Repeat, Trash2, ArrowLeft, X } from 'lucide-react';
+import { Calendar, User, CheckCircle, Edit, Repeat, Trash2, ArrowLeft, X } from 'lucide-react';
 import { differenceInDays, differenceInMilliseconds } from 'date-fns';
 import type { Task, ChecklistGroup } from '../types';
 import { useAuth } from '../hooks/useAuth';
@@ -231,7 +231,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask, isHighlighted = f
             <span>{formatDueDate(task.dueDate)}</span>
           </div>
           <div className="flex items-center gap-1">
-            <Coins size={16} />
+            <span>💎</span>
             <span>{task.gems} gems</span>
           </div>
         </div>
