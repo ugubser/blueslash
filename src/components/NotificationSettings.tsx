@@ -11,6 +11,8 @@ interface NotificationSettingsProps {
   showTestingControls?: boolean;
 }
 
+const isEmulator = import.meta.env.MODE === 'emulator' || import.meta.env.DEV;
+
 const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTestingControls = true }) => {
   const { user } = useAuth();
   const {
@@ -337,7 +339,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
           )}
 
           {/* Test Buttons */}
-          {hasPermission && showTestingControls && (
+          {hasPermission && showTestingControls && isEmulator && (
             <div className="mt-4 pt-3 border-t border-gray-200">
               <h4 className="text-sm font-semibold text-gray-800 mb-2">Test Notifications</h4>
               <div className="flex flex-col sm:flex-row gap-2">
