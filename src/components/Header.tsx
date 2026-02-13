@@ -16,17 +16,17 @@ const Header: React.FC = () => {
 
 
   return (
-    <header className="bg-white border-b-4 border-mario-blue shadow-lg">
+    <header className="bg-white border-b-2 border-mario-blue shadow-md">
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
         {/* Desktop Layout */}
-        <div className="hidden xl:flex items-center justify-between h-20 gap-8">
-          <div className="flex items-center gap-8">
-            <Link to="/task-board" className="text-2xl font-bold text-mario-blue hover:text-mario-blue-dark transition-colors">
+        <div className="hidden xl:flex items-center justify-between h-14 gap-6">
+          <div className="flex items-center gap-6">
+            <Link to="/task-board" className="text-xl font-bold text-mario-blue hover:text-mario-blue-dark transition-colors">
               BlueSlash
             </Link>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <HouseholdSwitcher />
-              <nav className="flex items-center gap-3">
+              <nav className="flex items-center gap-2">
                 <Link
                   to="/task-board"
                   className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors ${
@@ -63,14 +63,14 @@ const Header: React.FC = () => {
           </div>
 
           {user && (
-            <div className="flex items-center gap-5">
-              <div className="gem-counter">
-                <Coins className="coin-icon" size={20} />
+            <div className="flex items-center gap-4">
+              <div className="gem-counter text-sm">
+                <Coins className="coin-icon" size={16} />
                 <span>{formatNumber(user.gems)}</span>
               </div>
 
-              <div className="flex items-center gap-3 text-sm">
-                <User size={16} />
+              <div className="flex items-center gap-2 text-xs">
+                <User size={14} />
                 <span className="text-gray-700 whitespace-nowrap">{user.displayName}</span>
                 <span className="power-up-badge text-xs">
                   {userRole === 'head' ? '👑 HEAD' : '👤 MEMBER'}
@@ -79,7 +79,7 @@ const Header: React.FC = () => {
 
               <button
                 onClick={signOut}
-                className="mario-button-blue flex items-center gap-2 text-xs px-4 py-2 h-11"
+                className="mario-button-blue flex items-center gap-2 text-xs px-3 py-1.5"
               >
                 <LogOut size={14} />
                 Sign Out
@@ -89,9 +89,9 @@ const Header: React.FC = () => {
         </div>
 
         {/* Mobile and Tablet Layout - Two Lines */}
-        <div className="xl:hidden py-2">
+        <div className="xl:hidden py-1.5">
           {/* First Line */}
-          <div className="flex justify-between items-center mb-2">
+          <div className="flex justify-between items-center mb-1">
             <div className="flex-1 mr-2">
               <HouseholdSwitcher />
             </div>
@@ -139,10 +139,10 @@ const Header: React.FC = () => {
             )}
           </div>
 
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-1.5 flex items-center gap-2">
             <Link
               to="/task-board"
-              className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold transition-colors ${
+              className={`flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                 location.pathname === '/task-board'
                   ? 'bg-mario-blue text-white'
                   : 'bg-white/70 text-gray-700'
@@ -152,7 +152,7 @@ const Header: React.FC = () => {
             </Link>
             <Link
               to="/kitchen-board"
-              className={`flex-1 text-center px-3 py-2 rounded-lg text-xs font-bold transition-colors ${
+              className={`flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                 location.pathname === '/kitchen-board'
                   ? 'bg-mario-blue text-white'
                   : 'bg-white/70 text-gray-700'

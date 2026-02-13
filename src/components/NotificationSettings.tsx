@@ -130,16 +130,16 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
   };
 
   return (
-    <div className="bg-white rounded-lg border-4 border-mario-blue shadow-lg p-6 sm:p-8">
-      <div className="flex items-center gap-3 mb-6">
-        <Bell className="text-mario-blue" size={24} />
-        <h2 className="text-xl font-bold text-gray-800">Notification Settings</h2>
+    <div className="bg-white rounded-lg border-2 border-mario-blue shadow-md p-4 sm:p-6">
+      <div className="flex items-center gap-2 mb-3">
+        <Bell className="text-mario-blue" size={20} />
+        <h2 className="text-lg font-bold text-gray-800">Notification Settings</h2>
       </div>
 
       {/* Permission Status */}
-      <div className="mb-6 p-4 rounded-lg border-2 border-gray-200">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-center sm:text-left">
-          <div className="flex items-center justify-center sm:justify-start gap-3">
+      <div className="mb-4 p-3 rounded-lg border border-gray-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-center sm:text-left">
+          <div className="flex items-center justify-center sm:justify-start gap-2">
             {hasPermission ? (
               <>
                 <CheckCircle className="text-green-500" size={20} />
@@ -183,11 +183,11 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
 
       {/* Notification Preferences */}
       {hasPermission && localPreferences && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Notification Types</h3>
-          
-          <div className="space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
+        <div className="space-y-3">
+          <h3 className="text-base font-semibold text-gray-800 mb-2">Notification Types</h3>
+
+          <div className="space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-2.5 rounded-lg border border-gray-200">
               <div>
                 <label htmlFor="push-notifications" className="font-medium text-gray-700">
                   Push Notifications
@@ -204,7 +204,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-2.5 rounded-lg border border-gray-200">
               <div>
                 <label htmlFor="task-alerts" className="font-medium text-gray-700">
                   Task Board Alerts
@@ -222,7 +222,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-2.5 rounded-lg border border-gray-200">
               <div>
                 <label htmlFor="kitchen-post-alerts" className="font-medium text-gray-700">
                   Kitchen Board Posts
@@ -240,7 +240,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-2.5 rounded-lg border border-gray-200">
               <div>
                 <label htmlFor="task-reminders" className="font-medium text-gray-700">
                   Task Reminders
@@ -258,7 +258,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-2.5 rounded-lg border border-gray-200">
               <div>
                 <label htmlFor="direct-message-alerts" className="font-medium text-gray-700">
                   Direct Messages
@@ -276,7 +276,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-2.5 rounded-lg border border-gray-200">
               <div>
                 <label htmlFor="verification-requests" className="font-medium text-gray-700">
                   Verification Requests
@@ -294,7 +294,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-2.5 rounded-lg border border-gray-200">
               <div>
                 <label htmlFor="email-notifications" className="font-medium text-gray-700">
                   Email Notifications
@@ -315,7 +315,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
 
           {/* Save Button */}
           {hasChanges && (
-            <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">
+            <div className="flex justify-end mt-4 pt-3 border-t border-gray-200">
               <button
                 onClick={handleSavePreferences}
                 disabled={isSaving}
@@ -338,9 +338,9 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
 
           {/* Test Buttons */}
           {hasPermission && showTestingControls && (
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <h4 className="text-md font-semibold text-gray-800 mb-3">Test Notifications</h4>
-              <div className="flex flex-col sm:flex-row gap-3">
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <h4 className="text-sm font-semibold text-gray-800 mb-2">Test Notifications</h4>
+              <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={handleTestNotification}
                   disabled={testingNotifications}

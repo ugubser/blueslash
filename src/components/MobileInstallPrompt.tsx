@@ -121,7 +121,7 @@ const MobileInstallPrompt: React.FC = () => {
 
   return (
     <div className="fixed inset-x-0 bottom-4 px-4 sm:px-6 z-50">
-      <div className="max-w-xl mx-auto bg-white border-4 border-mario-blue rounded-xl shadow-xl p-4">
+      <div className="max-w-xl mx-auto bg-white border-2 border-mario-blue rounded-xl shadow-lg p-4">
         <div className="flex items-start gap-3">
           <div className="flex-1">
             <h3 className="text-lg font-bold text-gray-800 mb-1">Install BlueSlash</h3>

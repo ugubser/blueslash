@@ -113,7 +113,7 @@ If something exceed any of these things, then it's 25 Gems.`;
 
   if (!user) {
     return (
-      <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-10 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="mario-card text-center py-12">
           <p className="text-red-600">No user found. Please log in.</p>
         </div>
@@ -123,7 +123,7 @@ If something exceed any of these things, then it's 25 Gems.`;
 
   if (!household) {
     return (
-      <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-10 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="mario-card text-center py-12">
           <div className="loading-spinner w-12 h-12 mx-auto mb-4" />
           <p className="text-gray-600">Loading household...</p>
@@ -135,9 +135,9 @@ If something exceed any of these things, then it's 25 Gems.`;
   if (!isHeadOfHousehold) {
     // Non-head users can still access notification settings
     return (
-      <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-10 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="mb-4">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
+          <h1 className="text-lg sm:text-xl font-bold text-gray-800">
             Settings
           </h1>
         </div>
@@ -145,7 +145,7 @@ If something exceed any of these things, then it's 25 Gems.`;
         {/* Notification Settings - Available to all users */}
         <NotificationSettings showTestingControls={false} />
         
-        <div className="mario-card mt-6 text-center py-8">
+        <div className="mario-card mt-4 text-center py-6">
           <p className="text-gray-600">
             Only the head of household can access household management settings.
           </p>
@@ -161,17 +161,17 @@ If something exceed any of these things, then it's 25 Gems.`;
   try {
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-10 py-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
       <div className="mb-4">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
+        <h1 className="text-lg sm:text-xl font-bold text-gray-800">
           Household Settings
         </h1>
       </div>
 
       {/* Household Info */}
-      <div className="mario-card mb-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Household Information</h2>
-        <div className="space-y-2">
+      <div className="mario-card mb-4">
+        <h2 className="text-lg font-bold text-gray-800 mb-3">Household Information</h2>
+        <div className="space-y-1.5">
           <p><strong>Name:</strong> {household.name}</p>
           <p><strong>Members:</strong> {members.length}</p>
           <p><strong>Created:</strong> {formatDate(household.createdAt)}</p>
@@ -180,18 +180,18 @@ If something exceed any of these things, then it's 25 Gems.`;
 
       {/* LLM Gem Calculation Prompt - Only for Head of Household */}
       {isHeadOfHousehold && (
-        <div className="mario-card mb-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Brain size={20} className="text-mario-blue" />
-            <h2 className="text-xl font-bold text-gray-800">AI Gem Calculation</h2>
+        <div className="mario-card mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Brain size={18} className="text-mario-blue" />
+            <h2 className="text-lg font-bold text-gray-800">AI Gem Calculation</h2>
           </div>
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-600 text-sm mb-3">
             Configure how the AI determines gem values for tasks. This prompt guides the AI in evaluating task difficulty and time requirements.
           </p>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
-              <label htmlFor="gemPrompt" className="block text-sm font-bold text-gray-700 mb-2">
+              <label htmlFor="gemPrompt" className="block text-sm font-bold text-gray-700 mb-1">
                 Gem Calculation Guidelines
               </label>
               <textarea
@@ -204,8 +204,8 @@ If something exceed any of these things, then it's 25 Gems.`;
               />
             </div>
             
-            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
-              <div className="flex items-center gap-3 mb-2">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-1">
                 <input
                   type="checkbox"
                   id="allowGemOverride"
@@ -238,16 +238,16 @@ If something exceed any of these things, then it's 25 Gems.`;
       )}
 
       {/* Notification Settings - Available to all users */}
-      <div className="mb-6">
+      <div className="mb-4">
         <NotificationSettings showTestingControls={isHeadOfHousehold} />
       </div>
 
       {/* Invite Link Section - Only for Head of Household */}
       {isHeadOfHousehold && (
-        <div className="mario-card mb-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Link size={20} className="text-mario-blue" />
-            <h2 className="text-xl font-bold text-gray-800">Invite New Members</h2>
+        <div className="mario-card mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Link size={18} className="text-mario-blue" />
+            <h2 className="text-lg font-bold text-gray-800">Invite New Members</h2>
           </div>
           
           {!inviteLink ? (
@@ -260,9 +260,9 @@ If something exceed any of these things, then it's 25 Gems.`;
               {generatingLink ? 'Generating...' : 'Generate Invite Link'}
             </button>
           ) : (
-            <div className="space-y-4">
-              <div className="bg-gray-100 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-2">Share this link to invite new members:</p>
+            <div className="space-y-3">
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <p className="text-sm text-gray-600 mb-1.5">Share this link to invite new members:</p>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -293,16 +293,16 @@ If something exceed any of these things, then it's 25 Gems.`;
 
       {/* Members List */}
       <div className="mario-card">
-        <div className="flex items-center gap-3 mb-6">
-          <Users size={20} className="text-mario-blue" />
-          <h2 className="text-xl font-bold text-gray-800">Household Members</h2>
+        <div className="flex items-center gap-2 mb-3">
+          <Users size={18} className="text-mario-blue" />
+          <h2 className="text-lg font-bold text-gray-800">Household Members</h2>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
             {members.map((member) => (
               <div
                 key={member.id}
-                className="p-4 bg-gray-50 rounded-lg"
+                className="p-3 bg-gray-50 rounded-lg"
               >
                 {/* Desktop layout: side-by-side */}
                 <div className="hidden sm:flex items-center justify-between">
@@ -382,7 +382,7 @@ If something exceed any of these things, then it's 25 Gems.`;
   } catch (error) {
     console.error('HouseholdSettings render error:', error);
     return (
-      <div className="max-w-5xl mx-auto px-4 sm:px-8 lg:px-10 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="mario-card text-center py-12">
           <p className="text-red-600">Error loading household settings</p>
           <p className="text-gray-600 mt-2">Please try refreshing the page</p>

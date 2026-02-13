@@ -334,11 +334,11 @@ const KitchenBoard: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8">
-      <div className="flex flex-col lg:flex-row gap-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="flex flex-col lg:flex-row gap-5">
         <section className="lg:flex-1">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-white drop-shadow">Kitchen Board</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-bold text-white drop-shadow">Kitchen Board</h1>
             <button
               onClick={() => {
                 setComposerState({ body: '', attachment: null, attachmentPreview: undefined });
@@ -353,9 +353,9 @@ const KitchenBoard: React.FC = () => {
 
           {/* Desktop fridge */}
           <div className="hidden lg:block">
-            <div className="relative w-full bg-gradient-to-br from-blue-100 via-white to-blue-200 border-4 border-blue-700 rounded-[2.5rem] shadow-2xl aspect-[4/5] overflow-hidden p-6">
-              <div className="absolute inset-4 bg-white rounded-[2rem] shadow-inner" />
-              <div className="absolute inset-6">
+            <div className="relative w-full bg-gradient-to-br from-blue-100 via-white to-blue-200 border-2 border-blue-700 rounded-[2rem] shadow-xl aspect-[4/5] overflow-hidden p-4">
+              <div className="absolute inset-3 bg-white rounded-[1.5rem] shadow-inner" />
+              <div className="absolute inset-5">
                 {fridgePosts.map((post) => {
                   const rotation = (post.id.charCodeAt(0) % 10) - 5;
                   const style: React.CSSProperties = {
@@ -369,7 +369,7 @@ const KitchenBoard: React.FC = () => {
                       type="button"
                       key={post.id}
                       onClick={() => openPostModal(post)}
-                      className="absolute w-48 h-48 bg-yellow-100 border-2 border-yellow-400 shadow-lg flex flex-col justify-between p-4 hover:shadow-2xl transition-shadow"
+                      className="absolute w-40 h-40 bg-yellow-100 border-2 border-yellow-400 shadow-md flex flex-col justify-between p-3 hover:shadow-xl transition-shadow"
                       style={style}
                     >
                       <div>
@@ -399,7 +399,7 @@ const KitchenBoard: React.FC = () => {
           </div>
 
           {/* Mobile list */}
-          <div className="lg:hidden space-y-4">
+          <div className="lg:hidden space-y-3">
             {listPosts.length === 0 ? (
               <div className="mario-card text-center">
                 <p className="text-gray-600">No posts yet. Tap "New Post" to add one.</p>
@@ -409,7 +409,7 @@ const KitchenBoard: React.FC = () => {
                 <button
                   key={post.id}
                   onClick={() => openPostModal(post)}
-                  className="w-full text-left bg-white border-2 border-gray-200 rounded-xl shadow-md p-4"
+                  className="w-full text-left bg-white border-2 border-gray-200 rounded-lg shadow-sm p-3"
                 >
                   <div className="flex justify-between items-center mb-2">
                     <div>
@@ -428,11 +428,11 @@ const KitchenBoard: React.FC = () => {
         </section>
 
         {/* Messages */}
-        <aside className="lg:w-96 flex flex-col gap-4">
+        <aside className="lg:w-80 flex flex-col gap-3">
           <div className="mario-card">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                <MessageCircle size={18} />
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
+                <MessageCircle size={16} />
                 Household Messages
               </h2>
               {unreadCount > 0 && (
@@ -550,7 +550,7 @@ const KitchenBoard: React.FC = () => {
       {/* Post composer modal */}
       {isComposerOpen && (
         <Modal onClose={resetComposer}>
-          <div className="bg-white rounded-2xl border-4 border-mario-blue shadow-2xl max-w-2xl w-full p-6">
+          <div className="bg-white rounded-2xl border-2 border-mario-blue shadow-xl max-w-2xl w-full p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-800">
                 {composerState.editingPost ? 'Edit Post' : 'New Post'}
@@ -609,7 +609,7 @@ const KitchenBoard: React.FC = () => {
       {/* Post details modal */}
       {selectedPost && (
         <Modal onClose={closePostModal}>
-          <div className="bg-white rounded-2xl border-4 border-mario-blue shadow-2xl max-w-3xl w-full p-6 overflow-y-auto max-h-[90vh]">
+          <div className="bg-white rounded-2xl border-2 border-mario-blue shadow-xl max-w-3xl w-full p-6 overflow-y-auto max-h-[90vh]">
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h2 className="text-xl font-bold text-gray-800 mb-1">{selectedPost.post.title}</h2>
@@ -671,7 +671,7 @@ const KitchenBoard: React.FC = () => {
       {/* Delete confirmation */}
       {isConfirmDeleteOpen && postPendingDelete && (
         <Modal onClose={() => setIsConfirmDeleteOpen(false)}>
-          <div className="bg-white rounded-2xl border-4 border-mario-blue shadow-2xl max-w-md w-full p-6 text-center space-y-4">
+          <div className="bg-white rounded-2xl border-2 border-mario-blue shadow-xl max-w-md w-full p-6 text-center space-y-4">
             <h3 className="text-lg font-bold text-gray-800">Delete this post?</h3>
             <p className="text-sm text-gray-600">
               This will remove the note from the household fridge for everyone. This action cannot be undone.

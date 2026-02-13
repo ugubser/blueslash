@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Plus, Filter, Clock, Play, CheckCircle, ShieldCheck, FileText } from 'lucide-react';
+import { Plus, Clock, Play, CheckCircle, ShieldCheck, FileText } from 'lucide-react';
 import TaskCard from '../components/TaskCard';
 import CreateTaskForm from '../components/CreateTaskForm';
 import Leaderboard from '../components/Leaderboard';
@@ -102,23 +102,21 @@ const TaskBoard: React.FC = () => {
   }, [pendingFocusTask, loading, navigate, tasks]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col lg:flex-row gap-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="flex flex-col lg:flex-row gap-5">
         {/* Main Content */}
         <div className="flex-1">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
-                Household Tasks
-              </h1>
-            </div>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
+            <h1 className="text-lg sm:text-xl font-bold text-gray-800">
+              Household Tasks
+            </h1>
 
             <button
               onClick={() => {
                 setShowCreateForm(true);
                 setEditingTask(null);
               }}
-              className="mario-button flex items-center gap-2 text-sm px-3 py-2"
+              className="mario-button flex items-center gap-2 text-xs"
             >
               <Plus size={14} />
               New Task
@@ -126,15 +124,8 @@ const TaskBoard: React.FC = () => {
           </div>
 
           {/* Filters */}
-          <div className="mario-card mb-4">
-            <div className="flex items-center gap-3 mb-4 sm:mb-0 sm:justify-between">
-              <div className="flex items-center gap-2">
-                <Filter size={16} className="text-mario-blue" />
-                <h3 className="font-bold text-gray-800 text-sm sm:text-base">Filter Tasks</h3>
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap gap-2 sm:gap-1 sm:flex-nowrap sm:justify-end">
+          <div className="bg-white/60 rounded-lg px-3 py-2 mb-3">
+            <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
               {([
                 { status: 'published' as TaskStatus, label: 'Available', icon: Clock },
                 { status: 'claimed' as TaskStatus, label: 'In Progress', icon: Play },
@@ -145,21 +136,21 @@ const TaskBoard: React.FC = () => {
                 <button
                   key={status}
                   onClick={() => toggleFilter(status)}
-                  className={`rounded-lg font-bold text-sm transition-colors ${
+                  className={`rounded-md font-bold text-xs transition-colors px-2.5 py-1.5 ${
                     activeFilters.has(status)
                       ? 'bg-mario-blue text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  } sm:p-2 px-3 py-2 sm:px-2`}
+                  }`}
                   title={label}
                 >
                   {/* Mobile: Icon only */}
                   <span className="sm:hidden">
-                    <Icon size={16} />
+                    <Icon size={14} />
                   </span>
                   {/* Tablet/Desktop: Icon + Text */}
-                  <span className="hidden sm:flex items-center gap-2">
-                    <Icon size={14} />
-                    <span className="text-xs xl:text-sm">{label}</span>
+                  <span className="hidden sm:flex items-center gap-1.5">
+                    <Icon size={12} />
+                    <span>{label}</span>
                   </span>
                 </button>
               ))}
@@ -183,7 +174,7 @@ const TaskBoard: React.FC = () => {
               <div className="loading-spinner w-12 h-12" />
             </div>
           ) : filteredTasks.length > 0 ? (
-            <div className="grid gap-6">
+            <div className="grid gap-3">
               {filteredTasks.map((task) => (
                 <TaskCard
                   key={task.id}
@@ -195,11 +186,11 @@ const TaskBoard: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="mario-card text-center py-12">
-              <div className="text-gray-400 mb-4">
-                <Plus size={48} className="mx-auto" />
+            <div className="mario-card text-center py-8">
+              <div className="text-gray-400 mb-3">
+                <Plus size={40} className="mx-auto" />
               </div>
-              <h3 className="text-lg font-bold text-gray-600 mb-2">
+              <h3 className="text-base font-bold text-gray-600 mb-2">
                 {activeFilters.size === 0 ? 'No Filters Selected' : 'No Matching Tasks'}
               </h3>
               <p className="text-gray-500 mb-4 font-normal">
@@ -224,7 +215,7 @@ const TaskBoard: React.FC = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="lg:w-96">
+        <div className="lg:w-80">
           <Leaderboard />
         </div>
       </div>

@@ -187,10 +187,10 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask, isHighlighted = f
 
   return (
     <div id={`task-${task.id}`} className={cardClassName}>
-      <div className="flex justify-between items-start mb-3">
+      <div className="flex justify-between items-start mb-2">
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-bold text-lg text-gray-800">{task.title}</h3>
+          <div className="flex items-center gap-2 mb-0.5">
+            <h3 className="font-bold text-base text-gray-800">{task.title}</h3>
             {task.recurrence && (
               <div className="flex items-center gap-1 text-green-600 text-xs">
                 <Repeat size={14} />
@@ -207,7 +207,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask, isHighlighted = f
         {getStatusBadge()}
       </div>
 
-      <div className="text-gray-600 text-sm mb-4 leading-relaxed font-normal">
+      <div className="text-gray-600 text-sm mb-3 leading-relaxed font-normal">
         <MarkdownRenderer
           content={hasChecklistItems(task.description) 
             ? renderDescriptionWithoutChecklist(task.description)
@@ -224,8 +224,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask, isHighlighted = f
         />
       )}
 
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-4 text-sm text-gray-500">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3 text-sm text-gray-500">
           <div className="flex items-center gap-1">
             <Calendar size={16} />
             <span>{formatDueDate(task.dueDate)}</span>
@@ -238,7 +238,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask, isHighlighted = f
       </div>
 
       {task.claimedBy && (
-        <div className="flex items-center gap-2 mb-3 text-sm">
+        <div className="flex items-center gap-2 mb-2 text-sm">
           <User size={16} />
           <span className="text-gray-600">
             {task.claimedBy === user?.id 
@@ -250,7 +250,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEditTask, isHighlighted = f
       )}
 
       {task.status === 'completed' && (
-        <div className="mb-3">
+        <div className="mb-2">
           <p className="text-sm text-gray-600 mb-2">
             Verification: {task.verifications.filter(v => v.verified).length} / {Math.ceil(members.length * 0.5)} required
           </p>

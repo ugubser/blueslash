@@ -14,42 +14,41 @@
 
 @layer components {
   .mario-button {
-    @apply bg-mario-red text-white px-6 py-3 rounded-lg border-4 border-white shadow-lg;
+    @apply bg-mario-red text-white px-4 py-2 rounded-lg border-2 border-white shadow-lg;
     @apply hover:bg-red-600 active:scale-95 transition-all duration-150;
     @apply font-bold text-sm tracking-wide;
     background: linear-gradient(145deg, #e53e3e, #c53030);
-    box-shadow: 0 4px 0 #991b1b, 0 8px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 3px 0 #991b1b, 0 6px 15px rgba(0,0,0,0.25);
   }
-  
+
   .mario-button:active {
-    box-shadow: 0 2px 0 #991b1b, 0 4px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 0 #991b1b, 0 3px 8px rgba(0,0,0,0.25);
     transform: translateY(2px);
   }
 
   .mario-button-blue {
-    @apply bg-mario-blue text-white px-6 py-3 rounded-lg border-4 border-white shadow-lg;
+    @apply bg-mario-blue text-white px-4 py-2 rounded-lg border-2 border-white shadow-lg;
     @apply hover:bg-blue-600 active:scale-95 transition-all duration-150;
     @apply font-bold text-sm tracking-wide;
     background: linear-gradient(145deg, #3182ce, #2c5282);
-    box-shadow: 0 4px 0 #1a365d, 0 8px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 3px 0 #1a365d, 0 6px 15px rgba(0,0,0,0.25);
   }
 
   .mario-button-blue:active {
-    box-shadow: 0 2px 0 #1a365d, 0 4px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 0 #1a365d, 0 3px 8px rgba(0,0,0,0.25);
     transform: translateY(2px);
   }
 
   .mario-card {
-    @apply bg-white rounded-xl border-4 border-gray-300 shadow-xl p-6;
+    @apply bg-white rounded-xl border-2 border-gray-300 shadow-lg p-4;
     background: linear-gradient(145deg, #ffffff, #f7fafc);
-    box-shadow: 0 8px 0 #e2e8f0, 0 12px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 0 #e2e8f0, 0 8px 20px rgba(0,0,0,0.15);
   }
 
   .gem-counter {
-    @apply flex items-center gap-2 bg-mario-yellow text-black px-4 py-2 rounded-full;
-    @apply border-2 border-yellow-600 shadow-lg font-bold;
+    @apply flex items-center gap-2 bg-mario-yellow text-black px-3 py-1.5 rounded-full;
+    @apply border-2 border-yellow-600 shadow-md font-bold;
     background: linear-gradient(145deg, #d69e2e, #b7791f);
-    animation: glow 2s ease-in-out infinite alternate;
   }
 
   .coin-icon {
@@ -58,8 +57,8 @@
   }
 
   .task-card {
-    @apply bg-white rounded-lg border-2 border-gray-200 p-4 shadow-lg;
-    @apply hover:shadow-xl transition-all duration-200;
+    @apply bg-white rounded-lg border-2 border-gray-200 p-3 shadow-md;
+    @apply hover:shadow-lg transition-all duration-200;
     @apply hover:border-mario-blue cursor-pointer;
   }
 
@@ -111,22 +110,22 @@
   }
 
   .mario-input {
-    @apply w-full px-4 py-3 border-2 border-gray-300 rounded-lg;
+    @apply w-full px-3 py-2 border-2 border-gray-300 rounded-lg;
     @apply focus:border-mario-blue focus:ring-2 focus:ring-mario-blue focus:ring-opacity-50;
     @apply bg-white text-gray-900 font-normal;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   }
 
   .mario-textarea {
-    @apply w-full px-4 py-3 border-2 border-gray-300 rounded-lg;
+    @apply w-full px-3 py-2 border-2 border-gray-300 rounded-lg;
     @apply focus:border-mario-blue focus:ring-2 focus:ring-mario-blue focus:ring-opacity-50;
     @apply bg-white text-gray-900 font-normal;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    min-height: 120px;
+    min-height: 100px;
   }
 
   .leaderboard-item {
-    @apply flex items-center justify-between p-4 bg-white rounded-lg;
+    @apply flex items-center justify-between p-3 bg-white rounded-lg;
     @apply border-2 border-gray-200 hover:border-mario-blue transition-colors;
   }
 
@@ -189,15 +188,15 @@
   }
 
   .mario-button-green {
-    @apply bg-mario-green text-white px-6 py-3 rounded-lg border-4 border-white shadow-lg;
+    @apply bg-mario-green text-white px-4 py-2 rounded-lg border-2 border-white shadow-lg;
     @apply hover:bg-green-600 active:scale-95 transition-all duration-150;
     @apply font-bold text-sm tracking-wide;
     background: linear-gradient(145deg, #10b981, #059669);
-    box-shadow: 0 4px 0 #047857, 0 8px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 3px 0 #047857, 0 6px 15px rgba(0,0,0,0.25);
   }
 
   .mario-button-green:active {
-    box-shadow: 0 2px 0 #047857, 0 4px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 0 #047857, 0 3px 8px rgba(0,0,0,0.25);
     transform: translateY(2px);
   }
 }

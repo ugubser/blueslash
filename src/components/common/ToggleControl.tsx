@@ -25,7 +25,7 @@ const ToggleControl: React.FC<ToggleControlProps> = ({
         type="button"
         onClick={() => !disabled && onChange(!checked)}
         disabled={disabled}
-        className={`w-full sm:w-auto px-4 py-2 border-2 rounded-lg font-semibold transition-colors ${
+        className={`w-auto px-4 py-1.5 border-2 rounded-lg text-sm font-semibold transition-colors ${
           checked
             ? 'bg-mario-green text-white border-mario-green'
             : 'bg-gray-100 text-gray-600 border-gray-200'
