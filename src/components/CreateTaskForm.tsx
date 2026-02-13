@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Coins, Calendar, FileText, Edit, Repeat, Brain, Loader } from 'lucide-react';
 import { createTask, updateTask } from '../services/tasks';
 import { deleteField } from 'firebase/firestore';
@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { parseMarkdownChecklist, hasChecklistItems } from '../utils/checklist';
-import MarkdownToolbar from './MarkdownToolbar';
+import TiptapEditor from './TiptapEditor';
 import { startOfDay, addDays, parseISO } from 'date-fns';
 import type { Task, RecurrenceConfig } from '../types';
 
@@ -31,7 +31,6 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
   const [calculatingGems, setCalculatingGems] = useState(false);
   const [gemCalculationError, setGemCalculationError] = useState<string | null>(null);
   const [hasUsedAI, setHasUsedAI] = useState(false);
-  const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
   const isEditing = !!editTask;
 
@@ -256,17 +255,11 @@ const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ onTaskCreated, onClose,
               <FileText size={16} className="inline mr-1" />
               Description
             </label>
-            <MarkdownToolbar 
-              textareaRef={descriptionRef}
-              onTextChange={setDescription}
-            />
-            <textarea
-              ref={descriptionRef}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="mario-textarea"
+            <TiptapEditor
+              content={description}
+              onChange={setDescription}
               placeholder="Provide detailed instructions, including any specific requirements or notes..."
-              rows={4}
+              minHeight="100px"
             />
             <p className="text-xs text-gray-500 mt-1">
               Rich descriptions help others understand the task better and earn more gems!

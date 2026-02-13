@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Edit,
   FileText,
@@ -10,7 +10,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import MarkdownToolbar from '../components/MarkdownToolbar';
+import TiptapEditor from '../components/TiptapEditor';
 import MarkdownRenderer from '../components/MarkdownRenderer';
 import { useAuth } from '../hooks/useAuth';
 import { useHousehold } from '../hooks/useHousehold';
@@ -64,7 +64,6 @@ const KitchenBoard: React.FC = () => {
   const [pendingPostId, setPendingPostId] = useState<string | null>(null);
   const [pendingMessageId, setPendingMessageId] = useState<string | null>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     if (!household?.id) return;
@@ -559,14 +558,11 @@ const KitchenBoard: React.FC = () => {
                 <X size={20} />
               </button>
             </div>
-            <MarkdownToolbar textareaRef={textareaRef} onTextChange={(text) => setComposerState((prev) => ({ ...prev, body: text }))} />
-            <textarea
-              ref={textareaRef}
-              value={composerState.body}
-              onChange={(event) => setComposerState((prev) => ({ ...prev, body: event.target.value }))}
-              className="mario-textarea"
-              rows={10}
+            <TiptapEditor
+              content={composerState.body}
+              onChange={(text) => setComposerState((prev) => ({ ...prev, body: text }))}
               placeholder="Write your update, grocery list, or friendly reminder..."
+              minHeight="200px"
             />
 
             <div className="mt-4 space-y-3">

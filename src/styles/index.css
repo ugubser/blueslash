@@ -199,6 +199,100 @@
     box-shadow: 0 1px 0 #047857, 0 3px 8px rgba(0,0,0,0.25);
     transform: translateY(2px);
   }
+
+  /* Tiptap toolbar button */
+  .tiptap-toolbar-btn {
+    @apply p-1.5 rounded-md border border-gray-300 text-gray-600;
+    @apply hover:bg-gray-100 hover:text-gray-800 transition-colors duration-100;
+    @apply cursor-pointer;
+  }
+
+  /* Tiptap editor content area */
+  .tiptap-editor-content .ProseMirror {
+    @apply w-full px-3 py-2 border-2 border-gray-300 rounded-lg;
+    @apply focus:border-mario-blue focus:ring-2 focus:ring-mario-blue focus:ring-opacity-50;
+    @apply bg-white text-gray-900 font-normal;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    min-height: inherit;
+    outline: none;
+  }
+
+  .tiptap-editor-content .ProseMirror p {
+    @apply my-1;
+  }
+
+  .tiptap-editor-content .ProseMirror strong {
+    @apply font-bold;
+  }
+
+  .tiptap-editor-content .ProseMirror em {
+    @apply italic;
+  }
+
+  .tiptap-editor-content .ProseMirror a {
+    @apply text-mario-blue underline;
+  }
+
+  .tiptap-editor-content .ProseMirror ul {
+    @apply list-disc pl-5 my-1;
+  }
+
+  .tiptap-editor-content .ProseMirror ol {
+    @apply list-decimal pl-5 my-1;
+  }
+
+  .tiptap-editor-content .ProseMirror h2 {
+    @apply text-lg font-bold my-2;
+  }
+
+  .tiptap-editor-content .ProseMirror h3 {
+    @apply text-base font-bold my-1;
+  }
+
+  .tiptap-editor-content .ProseMirror pre {
+    @apply bg-gray-100 rounded p-2 my-1 font-mono text-sm overflow-x-auto;
+  }
+
+  .tiptap-editor-content .ProseMirror code {
+    @apply bg-gray-100 rounded px-1 py-0.5 font-mono text-sm;
+  }
+
+  .tiptap-editor-content .ProseMirror pre code {
+    @apply bg-transparent p-0;
+  }
+
+  /* Task list (checklist) styling */
+  .tiptap-editor-content .ProseMirror ul[data-type="taskList"] {
+    @apply list-none pl-0 my-1;
+  }
+
+  .tiptap-editor-content .ProseMirror ul[data-type="taskList"] li {
+    @apply flex items-center gap-2;
+  }
+
+  .tiptap-editor-content .ProseMirror ul[data-type="taskList"] li label {
+    @apply flex items-center;
+  }
+
+  .tiptap-editor-content .ProseMirror ul[data-type="taskList"] li label input[type="checkbox"] {
+    @apply cursor-pointer;
+  }
+
+  .tiptap-editor-content .ProseMirror ul[data-type="taskList"] li > div {
+    @apply flex-1;
+  }
+
+  .tiptap-editor-content .ProseMirror ul[data-type="taskList"] li > div p {
+    @apply my-0;
+  }
+
+  /* Placeholder */
+  .tiptap-editor-content .ProseMirror p.is-editor-empty:first-child::before {
+    @apply text-gray-400 pointer-events-none;
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+  }
 }
 
 @keyframes bounce-coin {
