@@ -187,7 +187,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
       </div>
 
       {/* Notification Preferences */}
-      {hasPermission && localPreferences && (
+      {(hasPermission || isNative) && localPreferences && (
         <div className="space-y-3">
           <h3 className="text-base font-semibold text-gray-800 mb-2">Notification Types</h3>
 

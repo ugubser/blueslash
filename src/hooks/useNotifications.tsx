@@ -89,6 +89,12 @@ export const useNotifications = (): UseNotificationsReturn => {
       });
     } else {
       setPreferences(defaults);
+      // On native, persist the all-ON defaults to Firestore immediately
+      if (isNative && user) {
+        notificationService.updateNotificationPreferences(user.id, defaults).catch((err) =>
+          console.error('Failed to save native default preferences:', err)
+        );
+      }
     }
   }, [user]);
 
