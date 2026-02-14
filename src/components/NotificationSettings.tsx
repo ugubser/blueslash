@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Bell, BellOff, CheckCircle, AlertCircle, Loader, TestTube } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import { useNotifications } from '../hooks/useNotifications';
 import { useAuth } from '../hooks/useAuth';
 import { httpsCallable } from 'firebase/functions';
@@ -131,6 +132,8 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
     }
   };
 
+  const isNative = Capacitor.isNativePlatform();
+
   return (
     <div className="bg-white rounded-lg border-2 border-mario-blue shadow-md p-4 sm:p-6">
       <div className="flex items-center gap-2 mb-3">
@@ -178,7 +181,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ showTesting
         
         {!hasPermission && (
           <p className="text-gray-600 text-sm mt-2">
-            Enable browser notifications to receive task reminders and updates.
+            Enable {isNative ? 'push' : 'browser'} notifications to receive task reminders and updates.
           </p>
         )}
       </div>

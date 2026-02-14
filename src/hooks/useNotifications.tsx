@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useAuth } from './useAuth';
 import { notificationService, type NotificationPermissionResult } from '../services/notifications';
 import type { NotificationPreferences } from '../types';
@@ -13,6 +14,8 @@ interface UseNotificationsReturn {
   token: string | null;
 }
 
+const isNative = Capacitor.isNativePlatform();
+
 export const useNotifications = (): UseNotificationsReturn => {
   const { user } = useAuth();
   const [hasPermission, setHasPermission] = useState(false);
@@ -23,8 +26,12 @@ export const useNotifications = (): UseNotificationsReturn => {
 
   // Initialize notification permission status
   useEffect(() => {
-    const checkPermission = () => {
-      if ('Notification' in window) {
+    const checkPermission = async () => {
+      if (isNative) {
+        const status = await notificationService.checkNativePermission();
+        setHasPermission(status === 'granted');
+        setIsEnabled(status === 'granted');
+      } else if ('Notification' in window) {
         const permission = Notification.permission;
         setHasPermission(permission === 'granted');
         setIsEnabled(permission === 'granted');
@@ -32,24 +39,40 @@ export const useNotifications = (): UseNotificationsReturn => {
     };
 
     checkPermission();
-    
-    // Setup foreground message handler
-    if (hasPermission) {
+  }, []);
+
+  // Setup message handlers when permission is granted
+  useEffect(() => {
+    if (!hasPermission) return;
+
+    if (isNative) {
+      notificationService.setupNativeListeners();
+    } else {
       notificationService.setupForegroundMessageHandler();
     }
   }, [hasPermission]);
 
   // Load user notification preferences
   useEffect(() => {
-    const defaults: NotificationPreferences = {
-      email: false,
-      push: false,
-      taskAlerts: true,
-      kitchenPosts: true,
-      directMessages: true,
-      taskReminders: false,
-      verificationRequests: false,
-    };
+    const defaults: NotificationPreferences = isNative
+      ? {
+          email: false,
+          push: true,
+          taskAlerts: true,
+          kitchenPosts: true,
+          directMessages: true,
+          taskReminders: true,
+          verificationRequests: true,
+        }
+      : {
+          email: false,
+          push: false,
+          taskAlerts: true,
+          kitchenPosts: true,
+          directMessages: true,
+          taskReminders: false,
+          verificationRequests: false,
+        };
 
     if (user?.notificationPreferences) {
       const existing = user.notificationPreferences as Partial<NotificationPreferences>;
@@ -94,37 +117,50 @@ export const useNotifications = (): UseNotificationsReturn => {
 
   const requestPermission = async (): Promise<NotificationPermissionResult> => {
     setIsLoading(true);
-    
+
     try {
       const result = await notificationService.requestPermission();
-      
+
       if (result.granted) {
         setHasPermission(true);
         setIsEnabled(true);
-        
+
         if (result.token) {
           setToken(result.token);
-          
-          // Save token to user profile if logged in
+
           if (user) {
             await notificationService.saveTokenToUser(user.id, result.token);
           }
         }
-        
-        // Setup foreground message handler
-        notificationService.setupForegroundMessageHandler();
 
-        // Set default preferences with both push and email enabled
+        // Setup message handlers
+        if (isNative) {
+          await notificationService.setupNativeListeners();
+        } else {
+          notificationService.setupForegroundMessageHandler();
+        }
+
+        // Set default preferences with push enabled
         if (user && !user.notificationPreferences?.push) {
-          const defaultPrefs: NotificationPreferences = {
-            push: true,
-            email: true,
-            taskAlerts: true,
-            kitchenPosts: true,
-            directMessages: true,
-            taskReminders: false,
-            verificationRequests: false,
-          };
+          const defaultPrefs: NotificationPreferences = isNative
+            ? {
+                push: true,
+                email: false,
+                taskAlerts: true,
+                kitchenPosts: true,
+                directMessages: true,
+                taskReminders: true,
+                verificationRequests: true,
+              }
+            : {
+                push: true,
+                email: true,
+                taskAlerts: true,
+                kitchenPosts: true,
+                directMessages: true,
+                taskReminders: false,
+                verificationRequests: false,
+              };
           await notificationService.updateNotificationPreferences(user.id, defaultPrefs);
           setPreferences(defaultPrefs);
         }
@@ -133,9 +169,9 @@ export const useNotifications = (): UseNotificationsReturn => {
       return result;
     } catch (error) {
       console.error('Permission request failed:', error);
-      return { 
-        granted: false, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      return {
+        granted: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
     } finally {
       setIsLoading(false);

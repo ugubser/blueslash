@@ -197,6 +197,14 @@ export async function sendPushNotification(
             }
           ]
         }
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: 'default',
+            badge: 1,
+          }
+        }
       }
     };
 

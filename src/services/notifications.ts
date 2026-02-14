@@ -1,5 +1,6 @@
 import { getToken, onMessage, type MessagePayload } from 'firebase/messaging';
 import { doc, updateDoc } from 'firebase/firestore';
+import { Capacitor } from '@capacitor/core';
 import { messaging, db } from './firebase';
 import type { NotificationPreferences } from '../types';
 
@@ -25,6 +26,7 @@ export interface NotificationPermissionResult {
 export class NotificationService {
   private static instance: NotificationService;
   private currentToken: string | null = null;
+  private nativeListenersSetUp = false;
 
   static getInstance(): NotificationService {
     if (!NotificationService.instance) {
@@ -34,16 +36,40 @@ export class NotificationService {
   }
 
   async requestPermission(): Promise<NotificationPermissionResult> {
+    if (Capacitor.isNativePlatform()) {
+      return this.requestNativePermission();
+    }
+    return this.requestWebPermission();
+  }
+
+  private async requestNativePermission(): Promise<NotificationPermissionResult> {
     try {
-      // Check if notifications are supported
+      const { FirebaseMessaging } = await import('@capacitor-firebase/messaging');
+
+      const permResult = await FirebaseMessaging.requestPermissions();
+      if (permResult.receive !== 'granted') {
+        return { granted: false, error: 'Notification permission denied' };
+      }
+
+      const { token } = await FirebaseMessaging.getToken();
+      this.currentToken = token;
+      console.log('Native FCM token:', token);
+
+      return { granted: true, token };
+    } catch (error) {
+      console.error('Error requesting native notification permission:', error);
+      return { granted: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  private async requestWebPermission(): Promise<NotificationPermissionResult> {
+    try {
       if (!('Notification' in window)) {
         return { granted: false, error: 'Notifications not supported in this browser' };
       }
 
-      // Check current permission status
       let permission = Notification.permission;
 
-      // Request permission if not already granted
       if (permission === 'default') {
         permission = await Notification.requestPermission();
       }
@@ -52,9 +78,8 @@ export class NotificationService {
         return { granted: false, error: 'Notification permission denied' };
       }
 
-      // Get FCM token
       const token = await this.getMessagingToken();
-      
+
       return { granted: true, token };
     } catch (error) {
       console.error('Error requesting notification permission:', error);
@@ -64,9 +89,8 @@ export class NotificationService {
 
   private async getMessagingToken(): Promise<string> {
     try {
-      // Use VAPID key if available in environment
       const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
-      
+
       if (!messaging) {
         throw new Error('Firebase Messaging not available on this platform');
       }
@@ -91,22 +115,20 @@ export class NotificationService {
   private async getServiceWorkerRegistration(): Promise<ServiceWorkerRegistration | undefined> {
     if ('serviceWorker' in navigator) {
       try {
-        // Use the existing PWA service worker registration that includes Firebase messaging
         const existingRegistration = await navigator.serviceWorker.getRegistration('/');
         if (existingRegistration && existingRegistration.active) {
           console.log('Using existing PWA service worker with messaging');
           return existingRegistration;
         }
-        
-        // In development or if no registration exists, wait for the service worker to be ready
+
         await navigator.serviceWorker.ready;
         const registration = await navigator.serviceWorker.getRegistration('/');
-        
+
         if (registration) {
           console.log('PWA service worker with messaging ready');
           return registration;
         }
-        
+
         console.warn('No service worker registration found');
         return undefined;
       } catch (error) {
@@ -144,12 +166,43 @@ export class NotificationService {
     }
   }
 
+  async setupNativeListeners(): Promise<void> {
+    if (this.nativeListenersSetUp) return;
+    this.nativeListenersSetUp = true;
+
+    try {
+      const { FirebaseMessaging } = await import('@capacitor-firebase/messaging');
+
+      await FirebaseMessaging.addListener('notificationReceived', (event) => {
+        console.log('Native foreground notification:', event.notification);
+      });
+
+      await FirebaseMessaging.addListener('notificationActionPerformed', (event) => {
+        console.log('Native notification tapped:', event);
+        const data = event.notification?.data as Record<string, unknown> | undefined;
+        const targetUrl = (typeof data?.targetUrl === 'string' ? data.targetUrl : null)
+          || buildTaskTargetUrl(data);
+        if (targetUrl) {
+          window.location.href = targetUrl;
+        }
+      });
+
+      await FirebaseMessaging.addListener('tokenReceived', (event) => {
+        console.log('Native FCM token refreshed:', event.token);
+        this.currentToken = event.token;
+      });
+
+      console.log('Native notification listeners set up');
+    } catch (error) {
+      console.error('Error setting up native listeners:', error);
+    }
+  }
+
   setupForegroundMessageHandler(): void {
     if (!messaging) return;
     onMessage(messaging, (payload: MessagePayload) => {
       console.log('Foreground message received:', payload);
-      
-      // Show notification if app is in foreground
+
       if (payload.notification) {
         const targetUrl = payload.data?.targetUrl || buildTaskTargetUrl(payload.data || {});
         this.showNotification(payload.notification.title || 'BlueSlash', {
@@ -169,19 +222,30 @@ export class NotificationService {
   private showNotification(title: string, options: NotificationOptions): void {
     if (Notification.permission === 'granted') {
       const notification = new Notification(title, options);
-      
-      // Handle notification click
+
       notification.onclick = (event) => {
         event.preventDefault();
         window.focus();
-        
+
         const targetUrl = options.data?.targetUrl || buildTaskTargetUrl(options.data);
         if (targetUrl) {
           window.location.href = targetUrl;
         }
-        
+
         notification.close();
       };
+    }
+  }
+
+  async checkNativePermission(): Promise<'granted' | 'denied' | 'prompt'> {
+    try {
+      const { FirebaseMessaging } = await import('@capacitor-firebase/messaging');
+      const result = await FirebaseMessaging.checkPermissions();
+      if (result.receive === 'granted') return 'granted';
+      if (result.receive === 'denied') return 'denied';
+      return 'prompt';
+    } catch {
+      return 'prompt';
     }
   }
 
@@ -191,6 +255,12 @@ export class NotificationService {
 
   async refreshToken(): Promise<string | null> {
     try {
+      if (Capacitor.isNativePlatform()) {
+        const { FirebaseMessaging } = await import('@capacitor-firebase/messaging');
+        const { token } = await FirebaseMessaging.getToken();
+        this.currentToken = token;
+        return token;
+      }
       const token = await this.getMessagingToken();
       return token;
     } catch (error) {

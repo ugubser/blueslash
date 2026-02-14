@@ -13,6 +13,11 @@ const config: CapacitorConfig = {
       '*.googleapis.com',
     ],
   },
+  plugins: {
+    FirebaseMessaging: {
+      presentationOptions: ['badge', 'sound', 'alert'],
+    },
+  },
 };
 
 export default config;
