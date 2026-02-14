@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { getBrowserName, isMobileDevice, isIosDevice, isStandalonePWA } from '../utils/device';
 import { notificationService } from '../services/notifications';
 import { useAuth } from '../hooks/useAuth';
@@ -115,7 +116,7 @@ const MobileInstallPrompt: React.FC = () => {
     setShowPrompt(false);
   };
 
-  if (!showPrompt || isStandalone || !isMobileDevice()) {
+  if (!showPrompt || isStandalone || !isMobileDevice() || Capacitor.isNativePlatform()) {
     return null;
   }
 
