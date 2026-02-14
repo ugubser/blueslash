@@ -6,6 +6,14 @@ import { promisify } from 'util'
 
 const execAsync = promisify(exec);
 
+// Strip crossorigin attributes from HTML — breaks Capacitor's capacitor:// scheme in WKWebView
+const stripCrossOrigin = () => ({
+  name: 'strip-crossorigin',
+  transformIndexHtml(html: string) {
+    return html.replace(/ crossorigin(="")?/g, '');
+  }
+});
+
 // Custom plugin to process Firebase messaging service worker
 const processMessagingPlugin = (mode: string) => ({
   name: 'process-messaging-sw',
@@ -21,6 +29,7 @@ const processMessagingPlugin = (mode: string) => ({
 export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
+    stripCrossOrigin(),
     ...(mode === 'production' || mode === 'emulator' ? [VitePWA({
       registerType: 'autoUpdate',
       devOptions: {

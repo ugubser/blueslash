@@ -21,9 +21,12 @@
     "deploy": "npm run build:prod && npm run predeploy:env && firebase deploy",
     "cap:sync": "npx cap sync ios",
     "cap:open": "npx cap open ios",
-    "cap:build": "npm run build:prod && npx cap sync ios"
+    "cap:build": "npm run build:prod && npx cap sync ios",
+    "cap:build:emulator": "npm run build && npx cap sync ios",
+    "emulators:ios": "npm run build && npx cap sync ios && npx cap open ios"
   },
   "dependencies": {
+    "@capacitor-firebase/authentication": "^8.0.1",
     "@capacitor/core": "^8.1.0",
     "@capacitor/ios": "^8.1.0",
     "@tiptap/extension-link": "^3.19.0",

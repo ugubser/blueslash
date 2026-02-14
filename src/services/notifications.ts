@@ -67,6 +67,9 @@ export class NotificationService {
       // Use VAPID key if available in environment
       const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
       
+      if (!messaging) {
+        throw new Error('Firebase Messaging not available on this platform');
+      }
       const token = await getToken(messaging, {
         vapidKey: vapidKey || undefined,
         serviceWorkerRegistration: await this.getServiceWorkerRegistration()
@@ -142,6 +145,7 @@ export class NotificationService {
   }
 
   setupForegroundMessageHandler(): void {
+    if (!messaging) return;
     onMessage(messaging, (payload: MessagePayload) => {
       console.log('Foreground message received:', payload);
       

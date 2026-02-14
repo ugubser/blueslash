@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { User } from '../types';
-import { onAuthStateChangeRealtime, signInWithGoogle, signOutUser, getCurrentUser, handleRedirectResult } from '../services/auth';
+import { onAuthStateChangeRealtime, signInWithGoogle, signOutUser, getCurrentUser } from '../services/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -17,9 +17,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Handle redirect result from native iOS sign-in
-    handleRedirectResult().catch(console.error);
-
     const unsubscribe = onAuthStateChangeRealtime((user) => {
       setUser(user);
       setLoading(false);

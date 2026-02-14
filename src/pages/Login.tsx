@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { LogIn, Home, CheckCircle, ExternalLink } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { signInWithDev, showDevSignIn } from '../services/auth';
 import TermsModal from '../components/TermsModal';
 
 const Login: React.FC = () => {
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [devEmail, setDevEmail] = useState('');
+  const [devLoading, setDevLoading] = useState(false);
 
   const handleSignIn = async () => {
     try {
@@ -16,6 +19,18 @@ const Login: React.FC = () => {
       console.error('Sign in failed:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDevSignIn = async () => {
+    if (!devEmail) return;
+    try {
+      setDevLoading(true);
+      await signInWithDev(devEmail);
+    } catch (error) {
+      console.error('Dev sign in failed:', error);
+    } finally {
+      setDevLoading(false);
     }
   };
 
@@ -66,30 +81,54 @@ const Login: React.FC = () => {
             </div>
           </div>
 
-          {/* Sign In Button */}
-          <button
-            onClick={handleSignIn}
-            disabled={loading}
-            className="mario-button w-full flex items-center justify-center gap-3 py-4 text-base"
-          >
-            {loading ? (
-              <div className="loading-spinner w-5 h-5" />
-            ) : (
-              <LogIn size={20} />
-            )}
-            Sign in with Google
-          </button>
+          {/* Native + emulator: show dev sign-in form instead of Google button */}
+          {showDevSignIn ? (
+            <div>
+              <p className="text-xs text-gray-500 mb-3 font-normal">Dev Sign-In (Emulator)</p>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={devEmail}
+                  onChange={(e) => setDevEmail(e.target.value)}
+                  placeholder="test@example.com"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
+                />
+                <button
+                  onClick={handleDevSignIn}
+                  disabled={devLoading || !devEmail}
+                  className="mario-button px-4 py-2 text-sm"
+                >
+                  {devLoading ? '...' : 'Dev Sign In'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={handleSignIn}
+                disabled={loading}
+                className="mario-button w-full flex items-center justify-center gap-3 py-4 text-base"
+              >
+                {loading ? (
+                  <div className="loading-spinner w-5 h-5" />
+                ) : (
+                  <LogIn size={20} />
+                )}
+                Sign in with Google
+              </button>
 
-          <p className="text-xs text-gray-500 mt-4 font-normal">
-            By signing in, you agree to our{' '}
-            <button
-              onClick={() => setShowTerms(true)}
-              className="text-mario-blue hover:text-mario-blue-dark underline focus:outline-none"
-            >
-              terms of service and privacy policy
-            </button>
-            .
-          </p>
+              <p className="text-xs text-gray-500 mt-4 font-normal">
+                By signing in, you agree to our{' '}
+                <button
+                  onClick={() => setShowTerms(true)}
+                  className="text-mario-blue hover:text-mario-blue-dark underline focus:outline-none"
+                >
+                  terms of service and privacy policy
+                </button>
+                .
+              </p>
+            </>
+          )}
         </div>
 
         {/* Mario-inspired decorative elements */}

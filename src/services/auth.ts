@@ -1,25 +1,27 @@
 import {
   signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithCredential,
   GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   type User as FirebaseUser
 } from 'firebase/auth';
+import { Capacitor } from '@capacitor/core';
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import type { Unsubscribe } from 'firebase/firestore';
-import { Capacitor } from '@capacitor/core';
 import { auth, db } from './firebase';
 import type { User } from '../types';
 
 const googleProvider = new GoogleAuthProvider();
-// Add additional scopes and custom parameters for better auth handling
 googleProvider.addScope('email');
 googleProvider.addScope('profile');
 googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
+
+const useEmulators = import.meta.env.MODE === 'emulator' || import.meta.env.DEV;
 
 async function getOrCreateUser(firebaseUser: FirebaseUser): Promise<User> {
   const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
@@ -45,38 +47,40 @@ async function getOrCreateUser(firebaseUser: FirebaseUser): Promise<User> {
   return userData;
 }
 
-// Handle redirect result after returning from Google sign-in (native iOS)
-export const handleRedirectResult = async (): Promise<User | null> => {
+// Native Google Sign-In for iOS production
+async function nativeGoogleSignIn(): Promise<User | null> {
+  const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+  const result = await FirebaseAuthentication.signInWithGoogle();
+  const credential = GoogleAuthProvider.credential(result.credential?.idToken);
+  const userCredential = await signInWithCredential(auth, credential);
+  return await getOrCreateUser(userCredential.user);
+}
+
+// Dev sign-in for emulator testing on native
+async function devSignIn(email: string): Promise<User | null> {
   try {
-    const result = await getRedirectResult(auth);
-    if (result) {
-      console.log('Redirect sign-in successful:', result.user.uid);
-      return await getOrCreateUser(result.user);
+    const { user } = await createUserWithEmailAndPassword(auth, email, 'dev-password-123');
+    return await getOrCreateUser(user);
+  } catch (e: unknown) {
+    if (e && typeof e === 'object' && 'code' in e && e.code === 'auth/email-already-in-use') {
+      const { user } = await signInWithEmailAndPassword(auth, email, 'dev-password-123');
+      return await getOrCreateUser(user);
     }
-    return null;
-  } catch (error) {
-    console.error('Error handling redirect result:', error);
-    return null;
+    throw e;
   }
-};
+}
 
 export const signInWithGoogle = async (): Promise<User | null> => {
   try {
     console.log('Starting Google sign-in...');
-    
-    // Check if we're in a secure context (required for Firebase Auth)
-    if (!window.isSecureContext && import.meta.env.PROD) {
-      throw new Error('Firebase Auth requires HTTPS in production');
-    }
-    
-    // WKWebView (Capacitor native) does not support signInWithPopup — use redirect instead
+
     if (Capacitor.isNativePlatform()) {
-      console.log('Native platform detected, using redirect sign-in');
-      await signInWithRedirect(auth, googleProvider);
-      // Result is handled by getRedirectResult() on next load (see handleRedirectResult)
-      return null;
+      // Native iOS: use native Google Sign-In plugin
+      console.log('Using native Google Sign-In');
+      return await nativeGoogleSignIn();
     }
 
+    // Web: use popup (existing flow)
     const result = await signInWithPopup(auth, googleProvider);
     const firebaseUser = result.user;
     console.log('Google sign-in successful:', firebaseUser.uid);
@@ -84,8 +88,7 @@ export const signInWithGoogle = async (): Promise<User | null> => {
     return await getOrCreateUser(firebaseUser);
   } catch (error) {
     console.error('Error signing in with Google:', error);
-    
-    // Handle specific Firebase Auth errors
+
     if (error && typeof error === 'object' && 'code' in error) {
       switch (error.code) {
         case 'auth/popup-closed-by-user':
@@ -107,17 +110,16 @@ export const signInWithGoogle = async (): Promise<User | null> => {
           console.error('Auth error code:', error.code);
       }
     }
-    
-    // Handle storage access errors specifically
-    if (error && typeof error === 'object' && 'message' in error && 
-        typeof error.message === 'string' && error.message.includes('storage')) {
-      console.error('Storage access error - possibly due to service worker or browser restrictions');
-      throw new Error('Authentication failed due to browser restrictions. Please try clearing your browser cache or disabling extensions.');
-    }
-    
+
     throw error;
   }
 };
+
+// Dev sign-in for emulator testing (used by Login.tsx)
+export const signInWithDev = devSignIn;
+
+// Whether to show the dev sign-in form
+export const showDevSignIn = Capacitor.isNativePlatform() && useEmulators;
 
 export const signOutUser = async (): Promise<void> => {
   try {
