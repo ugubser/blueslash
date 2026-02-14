@@ -18,9 +18,14 @@
     "emulators": "firebase emulators:start",
     "serve:emulator": "npm run build && firebase serve --only hosting --port 5003",
     "predeploy:env": "node scripts/generate-env.js",
-    "deploy": "npm run build:prod && npm run predeploy:env && firebase deploy"
+    "deploy": "npm run build:prod && npm run predeploy:env && firebase deploy",
+    "cap:sync": "npx cap sync ios",
+    "cap:open": "npx cap open ios",
+    "cap:build": "npm run build:prod && npx cap sync ios"
   },
   "dependencies": {
+    "@capacitor/core": "^8.1.0",
+    "@capacitor/ios": "^8.1.0",
     "@tiptap/extension-link": "^3.19.0",
     "@tiptap/extension-placeholder": "^3.19.0",
     "@tiptap/extension-task-item": "^3.19.0",
@@ -41,6 +46,7 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.1.0",
     "@eslint/js": "^9.25.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

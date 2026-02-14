@@ -28,6 +28,9 @@ firestore-debug.log
 extensions/firestore-send-email.env
 extensions/firestore-send-email.secret
 
+# Capacitor
+ios/App/Pods/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

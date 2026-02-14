@@ -1,12 +1,15 @@
-import { 
-  signInWithPopup, 
-  GoogleAuthProvider, 
-  signOut, 
+import {
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  GoogleAuthProvider,
+  signOut,
   onAuthStateChanged,
   type User as FirebaseUser
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import type { Unsubscribe } from 'firebase/firestore';
+import { Capacitor } from '@capacitor/core';
 import { auth, db } from './firebase';
 import type { User } from '../types';
 
@@ -18,6 +21,45 @@ googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
+async function getOrCreateUser(firebaseUser: FirebaseUser): Promise<User> {
+  const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+
+  if (!userDoc.exists()) {
+    console.log('Creating new user document...');
+    const newUser: User = {
+      id: firebaseUser.uid,
+      email: firebaseUser.email || '',
+      displayName: firebaseUser.displayName || '',
+      households: [],
+      gems: 0,
+      createdAt: new Date()
+    };
+
+    await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
+    console.log('New user created:', newUser);
+    return newUser;
+  }
+
+  const userData = userDoc.data() as User;
+  console.log('Existing user found:', userData);
+  return userData;
+}
+
+// Handle redirect result after returning from Google sign-in (native iOS)
+export const handleRedirectResult = async (): Promise<User | null> => {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result) {
+      console.log('Redirect sign-in successful:', result.user.uid);
+      return await getOrCreateUser(result.user);
+    }
+    return null;
+  } catch (error) {
+    console.error('Error handling redirect result:', error);
+    return null;
+  }
+};
+
 export const signInWithGoogle = async (): Promise<User | null> => {
   try {
     console.log('Starting Google sign-in...');
@@ -27,31 +69,19 @@ export const signInWithGoogle = async (): Promise<User | null> => {
       throw new Error('Firebase Auth requires HTTPS in production');
     }
     
+    // WKWebView (Capacitor native) does not support signInWithPopup — use redirect instead
+    if (Capacitor.isNativePlatform()) {
+      console.log('Native platform detected, using redirect sign-in');
+      await signInWithRedirect(auth, googleProvider);
+      // Result is handled by getRedirectResult() on next load (see handleRedirectResult)
+      return null;
+    }
+
     const result = await signInWithPopup(auth, googleProvider);
     const firebaseUser = result.user;
     console.log('Google sign-in successful:', firebaseUser.uid);
-    
-    const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-    
-    if (!userDoc.exists()) {
-      console.log('Creating new user document...');
-      const newUser: User = {
-        id: firebaseUser.uid,
-        email: firebaseUser.email || '',
-        displayName: firebaseUser.displayName || '',
-        households: [],
-        gems: 0,
-        createdAt: new Date()
-      };
-      
-      await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
-      console.log('New user created:', newUser);
-      return newUser;
-    }
-    
-    const userData = userDoc.data() as User;
-    console.log('Existing user found:', userData);
-    return userData;
+
+    return await getOrCreateUser(firebaseUser);
   } catch (error) {
     console.error('Error signing in with Google:', error);
     
