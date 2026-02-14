@@ -5,6 +5,8 @@ const config: CapacitorConfig = {
   appName: 'BlueSlash',
   webDir: 'dist',
   server: {
+    // http scheme required so WKWebView can reach Firebase emulators at 127.0.0.1
+    iosScheme: 'http',
     allowNavigation: [
       'accounts.google.com',
       '*.firebaseapp.com',

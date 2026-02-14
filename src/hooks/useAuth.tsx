@@ -17,12 +17,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let resolved = false;
+
     const unsubscribe = onAuthStateChangeRealtime((user) => {
+      resolved = true;
       setUser(user);
       setLoading(false);
     });
 
-    return unsubscribe;
+    // Fallback timeout — if auth state never fires (e.g. emulator connectivity),
+    // stop loading so the login screen renders
+    const timeout = setTimeout(() => {
+      if (!resolved) {
+        console.warn('Auth state listener timed out — showing login screen');
+        setLoading(false);
+      }
+    }, 5000);
+
+    return () => {
+      clearTimeout(timeout);
+      unsubscribe();
+    };
   }, []);
 
   const signIn = async (): Promise<User | null> => {

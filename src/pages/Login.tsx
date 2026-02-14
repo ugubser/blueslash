@@ -8,8 +8,9 @@ const Login: React.FC = () => {
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
-  const [devEmail, setDevEmail] = useState('');
+  const [devEmail, setDevEmail] = useState('test@example.com');
   const [devLoading, setDevLoading] = useState(false);
+  const [devError, setDevError] = useState('');
 
   const handleSignIn = async () => {
     try {
@@ -25,10 +26,13 @@ const Login: React.FC = () => {
   const handleDevSignIn = async () => {
     if (!devEmail) return;
     try {
+      setDevError('');
       setDevLoading(true);
       await signInWithDev(devEmail);
     } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
       console.error('Dev sign in failed:', error);
+      setDevError(msg);
     } finally {
       setDevLoading(false);
     }
@@ -84,23 +88,29 @@ const Login: React.FC = () => {
           {/* Native + emulator: show dev sign-in form instead of Google button */}
           {showDevSignIn ? (
             <div>
-              <p className="text-xs text-gray-500 mb-3 font-normal">Dev Sign-In (Emulator)</p>
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  value={devEmail}
-                  onChange={(e) => setDevEmail(e.target.value)}
-                  placeholder="test@example.com"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
-                />
-                <button
-                  onClick={handleDevSignIn}
-                  disabled={devLoading || !devEmail}
-                  className="mario-button px-4 py-2 text-sm"
-                >
-                  {devLoading ? '...' : 'Dev Sign In'}
-                </button>
-              </div>
+              <p className="text-sm text-gray-600 mb-3 font-normal">Dev Sign-In (Emulator)</p>
+              <input
+                type="email"
+                value={devEmail}
+                onChange={(e) => setDevEmail(e.target.value)}
+                placeholder="test@example.com"
+                className="w-full px-3 py-3 border border-gray-300 rounded text-base mb-3"
+              />
+              <button
+                onClick={handleDevSignIn}
+                disabled={devLoading || !devEmail}
+                className="mario-button w-full flex items-center justify-center gap-3 py-4 text-base"
+              >
+                {devLoading ? (
+                  <div className="loading-spinner w-5 h-5" />
+                ) : (
+                  <LogIn size={20} />
+                )}
+                Dev Sign In
+              </button>
+              {devError && (
+                <p className="text-red-500 text-sm mt-3 font-normal">{devError}</p>
+              )}
             </div>
           ) : (
             <>

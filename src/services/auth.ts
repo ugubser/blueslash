@@ -58,13 +58,23 @@ async function nativeGoogleSignIn(): Promise<User | null> {
 
 // Dev sign-in for emulator testing on native
 async function devSignIn(email: string): Promise<User | null> {
+  console.log('[devSignIn] Starting with email:', email);
+  console.log('[devSignIn] Auth emulator config:', auth.emulatorConfig);
   try {
+    console.log('[devSignIn] Calling createUserWithEmailAndPassword...');
     const { user } = await createUserWithEmailAndPassword(auth, email, 'dev-password-123');
+    console.log('[devSignIn] User created:', user.uid);
     return await getOrCreateUser(user);
   } catch (e: unknown) {
+    console.log('[devSignIn] Error:', e);
     if (e && typeof e === 'object' && 'code' in e && e.code === 'auth/email-already-in-use') {
+      console.log('[devSignIn] User exists, trying signInWithEmailAndPassword...');
       const { user } = await signInWithEmailAndPassword(auth, email, 'dev-password-123');
-      return await getOrCreateUser(user);
+      console.log('[devSignIn] Signed in:', user.uid);
+      console.log('[devSignIn] Calling getOrCreateUser...');
+      const result = await getOrCreateUser(user);
+      console.log('[devSignIn] getOrCreateUser done:', result?.id);
+      return result;
     }
     throw e;
   }
